@@ -1,0 +1,16 @@
+{
+  "_comment": "Ladder steps 2-3 — when the hash is not indexed yet. Address plus asset narrows it; amount and a time window around settlement make it unambiguous. Note the unencoded dates here: build_query.py encodes them.",
+  "criteria": {
+    "data.type": "travelRule",
+    "data.info.direction": "in",
+    "data.counterparty.paymentMethod.accountId": "0xaddressthefundscamefrom",
+    "data.info.currencyCode": "USDT",
+    "data.info.cryptoParams.cryptoChain": "ETH",
+    "data.info.amount__gte": 1249,
+    "data.info.amount__lte": 1251,
+    "data.txnDate__gte": "2026-05-21 00:00:00",
+    "data.txnDate__lte": "2026-05-21 23:59:59"
+  },
+  "order": "-data.txnDate",
+  "limit": 10
+}

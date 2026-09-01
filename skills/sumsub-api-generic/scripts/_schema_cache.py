@@ -2,7 +2,7 @@
 
 The schema is publicly served (no authentication required) at:
 
-    https://api.sumsub.com/openapi.json
+    https://api.sumsub.com/agents-openapi.json
 
 We fetch it on first use, cache locally for 24 h, and refresh transparently
 on the next call once the cache goes stale. On a refresh that fails (network
@@ -27,7 +27,7 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-DEFAULT_SCHEMA_URL = "https://api.sumsub.com/openapi.json"
+DEFAULT_SCHEMA_URL = "https://api.sumsub.com/agents-openapi.json"
 CACHE_TTL_SECONDS = 24 * 60 * 60  # 1 day
 
 

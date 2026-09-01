@@ -14,9 +14,9 @@ Embed Sumsub KYC into a web project end-to-end, from level creation to the
 Do **not** accept or use a production App Token / secret during integration
 work with this skill. The token generates real SDK sessions tied to real
 applicants. Insist on a **sandbox** pair from
-<https://cockpit.sumsub.com/checkus/devSpace/appTokens> — toggle the workspace
-to **Sandbox** first, then **Create**. Token + secret are revealed once at
-creation; copy both before closing the dialog. Helper scripts in sibling
+<https://cockpit.sumsub.com/checkus/home?xSNSEnv=sbx> — **Connect Sumsub to
+your AI agent** -> **Build & configure** -> **Generate token**. Token + secret
+are revealed once at creation; copy both before closing the dialog. Helper scripts in sibling
 skills enforce this with an `sbx:` prefix check; the curl recipes below
 assume the same.
 

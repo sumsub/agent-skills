@@ -71,8 +71,7 @@ emit() {  # status name detail
 
 # Combined-output curl idiom (no -o): the body is followed by a "HTTP <code>"
 # trailer line emitted by `-w '\nHTTP %{http_code}\n'`. These split the two back
-# out — correct under real curl and compatible with the test mock, which writes
-# the body to stdout rather than honouring -o.
+# out — works identically under real curl and the test mock.
 http_code_from() { awk '/^HTTP [0-9][0-9][0-9]$/{c=$2} END{print c}'; }
 strip_http_line() { sed '/^HTTP [0-9][0-9][0-9]*$/d'; }
 
@@ -90,7 +89,7 @@ check_behavior_token() {
     -H "X-App-Access-Ts: ${ts}" \
     -H "X-App-Access-Sig: ${sig}" \
     -H "X-Agent-Source: sumsub-skills" \
-    -H "X-Agent-Source-Ver: 1.3.0" \
+    -H "X-Agent-Source-Ver: 1.4.0" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     --data "${body}" "${BASE}${path}")"
@@ -129,7 +128,7 @@ check_levels() {
     -H "X-App-Access-Ts: ${ts}" \
     -H "X-App-Access-Sig: ${sig}" \
     -H "X-Agent-Source: sumsub-skills" \
-    -H "X-Agent-Source-Ver: 1.3.0" \
+    -H "X-Agent-Source-Ver: 1.4.0" \
     -H "Accept: application/json" \
     "${BASE}${path}")"
   code="$(printf '%s' "${resp}" | http_code_from)"

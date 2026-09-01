@@ -75,7 +75,7 @@ check_connect_token() {
     -H "X-App-Access-Ts: ${ts}" \
     -H "X-App-Access-Sig: ${sig}" \
     -H "X-Agent-Source: sumsub-skills" \
-    -H "X-Agent-Source-Ver: 1.3.0" \
+    -H "X-Agent-Source-Ver: 1.4.0" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     --data "${body}" "${BASE}${path}")"
@@ -135,7 +135,7 @@ check_levels() {
     -H "X-App-Access-Ts: ${ts}" \
     -H "X-App-Access-Sig: ${sig}" \
     -H "X-Agent-Source: sumsub-skills" \
-    -H "X-Agent-Source-Ver: 1.3.0" \
+    -H "X-Agent-Source-Ver: 1.4.0" \
     -H "Accept: application/json" \
     "${BASE}${path}")"
   if [[ "${code}" != "200" ]]; then

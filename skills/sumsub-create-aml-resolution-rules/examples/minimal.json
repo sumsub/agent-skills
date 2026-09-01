@@ -1,0 +1,13 @@
+{
+  "name": "Tag PEP-only hits",
+  "description": "Adds a tag to every hit that carries only the pep risk label, so compliance can filter them in the queue.",
+  "condition": {
+    "or": [
+      { "and": [
+        { "op": "ne", "args": [ { "exp": "input.entityType" }, { "lit": "\"company\"" } ] },
+        { "op": "containsOnly", "args": [ { "exp": "match.riskLabels" }, { "lit": "[\"pep\"]" } ] }
+      ] }
+    ]
+  },
+  "tags": ["pep_only_hit"]
+}

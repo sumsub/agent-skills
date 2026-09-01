@@ -58,15 +58,12 @@
 
 ## Transaction Types
 
-| Type | Description | Required entitlement |
-|---|---|---|
-| `finance` | Financial transactions with counterparty | `KYT` |
-| `travelRule` | Travel Rule transactions | `TRAVEL_RULE` |
-| `kyc` | KYC / verification session events | `KYT` |
-| `userPlatformEvent` | Login, logout, password change, 2FA events | `KYT_ANTI_FRAUD` + `KYT` |
-| `scheduledEvent` | Periodic applicant-based events (no incoming txn) | `TM_SCHEDULED_EVENTS` + `KYT` |
+Transaction types, their descriptions, and the combination rules: see the
+`Transaction Types` section of [`../SKILL.md`](../SKILL.md).
 
-Types may be combined except `scheduledEvent` which must be alone.
+Entitlements are gated per type, and each type is enabled by **any one** of several keys.
+The mapping lives in one place only — the `Tenant Entitlements` section of
+[`../SKILL.md`](../SKILL.md). Do not restate it here.
 
 ---
 
@@ -98,8 +95,13 @@ The root context available inside `conditionEl`:
 | `clientLists` | `ClientLists` | Named client lists — `clientLists.listName.contains(value)` or `value IN clientLists.listName` |
 | `poi` | `PoiExpressionData` | Applicant proof of identity |
 | `poa` | `PoaExpressionData` | Applicant proof of address |
-| `questionnaires` | Object | Questionnaire values — `questionnaires[qId][sectionId][itemId]` |
-| `preScoringContext` | `PreScoringContextExpressionData` | Data from pre-scoring runners (AML, crypto, etc.) |
+| `questionnaires` | Object | Questionnaire answers, nested by questionnaire → section → item. Dot notation only — see the `questionnaires` section below. |
+| `service` | `ServiceExpressionData` | Service-level data enriched during pre-scoring (e.g. crypto screening, AML, travel rule) |
+| `preScoringContext` | `ServiceExpressionData` | **Deprecated alias of `service`** — emit `service.*` instead |
+| `checks` | `KytBackgroundChecksExpressionData` | Background checks information |
+| `currentRule` | `TxnMatchedRuleExpressionData` | The rule currently being evaluated — `.name`, `.title`, `.id`, `.score`, `.tags`, `.dryRun`, `.revision`, `.sourceKeys` |
+| `currentFailedRules` | `STRING[]` | Names of rules failed during the current rule matching process |
+| `applicantAction` | `ApplicantActionExpressionData` | The applicant action that triggered the current scoring |
 | `currentScore` | INT | Accumulated score from preceding rules |
 | `currentMatchedRuleNames` | `STRING[]` | Names of already-matched rules this session |
 | `txnFraudInfo` | `KytTxnFraudExpressionData` | Fraud analysis data (behavioral, device, IP, email, phone) |
@@ -150,8 +152,24 @@ The root context available inside `conditionEl`:
 | `applicant.riskLabels.device` | `STRING[]` | Device risk: `vpnUsage`, `torUsage`, `highRiskIp`, … |
 | `applicant.review.decision` | STRING | `approved` \| `rejected` \| `resubmission` |
 | `applicant.assessment.totalScore` | FLOAT | Aggregated applicant risk score |
-| `applicant.fixedInfo` | `ApplicantInfoExpressionData` | `.country`, `.firstName`, `.lastName`, `.dob`, `.residenceCountry`, … |
+| `applicant.fixedInfo` | `ApplicantInfoExpressionData` | Basic applicant information **as provided to the SDK / API / dashboard** |
+| `applicant.info` | `ApplicantInfoExpressionData` | Applicant information **extracted from documents** |
+| `applicant.emailDomain` | STRING | Email domain name |
+| `applicant.countryOfBirth` | STRING | ISO 3166-1 alpha-3 |
+| `applicant.registrationDate` | `DateExpressionData` | When the client started the relationship with the applicant |
+| `applicant.allMemberRoles` | `STRING[]` | `shareholder`, `representative`, `director`, `ubo`, … |
+| `applicant.metadata` | `MAP<STRING, STRING>` | Applicant metadata |
 | `applicant.checks.watchlist.matchStatuses` | `STRING[]` | Watchlist results: `unknown`, `no_match`, `potential_match`, `false_positive`, `true_positive` |
+
+---
+
+**`info` vs `fixedInfo`** — same type, different provenance: `fixedInfo` is what the client sent,
+`info` is what was read off the documents. A condition on one will match different applicants than
+the same condition on the other, so pick deliberately.
+
+Both carry: `.firstName`, `.lastName`, `.middleName` (+ `.firstNameEn` / `.lastNameEn` / `.middleNameEn`),
+`.dob`, `.age`, `.gender`, `.country`, `.nationality`, `.residenceCountry`, `.taxResidenceCountry`,
+`.countryOfBirth`, `.address` / `.addresses`, `.phone`, `.tin`, `.tinCountries`.
 
 ---
 
@@ -171,6 +189,17 @@ The root context available inside `conditionEl`:
 | `.institutionInfo.code` | STRING | Bank BIC/SWIFT code |
 | `.institutionInfo.name` | STRING | Bank name |
 | `.device.ipInfo.country` | STRING | IP country (alpha-3) |
+| `.firstName` / `.lastName` | STRING | Given / family name |
+| `.dob` | DATE | Date of birth |
+| `.placeOfBirth` | STRING | Place of birth |
+| `.nameType` | STRING | `aliasName`, `birthName`, `maidenName`, `legalName`, `shortName`, `other` |
+| `.idDoc.number` | STRING | Identity document number |
+| `.idDoc.country` | STRING | Document issuing country (alpha-3) |
+| `.idDoc.idDocType` | STRING | `ID_CARD`, `PASSPORT`, `TRAVEL_PASSPORT`, `DRIVERS`, `SNILS`, `RESIDENCE_PERMIT`, … |
+| `.idDoc.registrationAuthority` | STRING | Issuing authority |
+| `.registrationNumber` | STRING | Company registration number |
+| `.licenseNumber` | STRING | Licence number |
+| `.leiCode` | STRING | Legal Entity Identifier |
 
 ---
 
@@ -258,6 +287,69 @@ txns.finance.byApplicant.lastWeeks(1).distinctCount(it.data.counterparty.externa
 
 ---
 
+## `questionnaires` — Questionnaire Answers
+
+Answers are nested **questionnaire id → section id → item id**:
+
+```
+questionnaires.myQuestionnaireId.mySectionId.myItemId
+```
+
+**Dot notation only.** The bracket form `questionnaires[qId][sectionId][itemId]` does **not** compile
+here — never use it.
+
+**A segment containing a dash must be wrapped in backticks**, otherwise the dash parses as
+subtraction and the expression breaks:
+
+```
+questionnaires.`my-quest-id`.mySectionId.myItemId
+```
+
+Real ids frequently contain dashes, so check every one of the three segments before writing the
+path — not just the questionnaire id.
+
+**All three segments are required.** Item ids are not unique across the sections of one
+questionnaire, so the section segment carries meaning and the path cannot be shortened.
+
+**Any rule type can read `questionnaires`.** The `types` value selects which event triggers
+evaluation, not which data is reachable — a `finance` rule and a `kyc` rule can both test the same
+answer. Pick the type by the event that should fire the rule: a transaction, or a verification
+session on the applicant.
+
+### Finding the three ids
+
+1. **List questionnaires** — `GET /resources/api/questionnaires/list`. Note the path: unlike the
+   questionnaire write endpoints, this one is **not** under `/api/agent/`.
+2. **Read one back** — `GET /resources/api/agent/questionnaires/{id}`.
+3. **Walk the response** — `sections[].id` is the section segment, `sections[].items[].id` is the
+   item segment. Prefer each entity's `title` when talking to the user, and the `id` in the path.
+
+### Compare against the option value, not its label
+
+`GET /resources/api/agent/questionnaires/{id}` returns each option as an object:
+
+```json
+"options": [{ "value": "a", "title": "Bank statements", "localizedTitle": { … }, "score": null }]
+```
+
+Compare against **`value`** — that is what an answer stores. `title` and `localizedTitle` are display
+text for the applicant and never appear in an answer. So the condition for "source of funds is bank
+statements" is `== 'a'`, **not** `== 'Bank statements'`.
+
+Comparing against the title produces a rule that saves cleanly, sits in testMode looking healthy,
+and never matches — there is no error to alert you. Item and section `title` are often empty in a
+definition, which makes the option title the only human-readable string in sight and the mistake
+easy to make.
+
+Do not confuse an option's `score` with the rule's `score`: the former is questionnaire-native
+scoring, a separate feature gated by the `QUESTIONNAIRE_SCORING` entitlement, and it does not feed
+the rule's score.
+
+Note: the two-element `[value, title]` form appears in this repo's questionnaire **input** examples —
+`sumsub-create-questionnaire` expands it into the object above. It is not what a read returns.
+
+---
+
 ## SumScript Operators
 
 | Operator | Use |
@@ -273,6 +365,33 @@ txns.finance.byApplicant.lastWeeks(1).distinctCount(it.data.counterparty.externa
 | `addScoreIf(expr, score)` | Add score if expr is true; returns BOOL (side-effect function) |
 
 String literals use single quotes: `'out'`, `'rejected'`.
+
+### Functions
+
+Signatures from the EL type schema. Selected subset — the ones that come up when translating a
+client's wording into a condition.
+
+| Function | Signature | Use |
+|---|---|---|
+| `fuzzyMatchValue` | `(str1: STRING, str2: STRING): FLOAT` | Normalised Levenshtein similarity — "names look alike" |
+| `matches` | `(s: STRING, pattern: STRING): BOOL` | Regex match |
+| `equalsIgnoreCase` | `(s: STRING, p: STRING): BOOL` | Case-insensitive equality |
+| `startsWith` / `endsWith` | `(s: STRING, prefix\|suffix: STRING): BOOL` | Prefix / suffix test |
+| `between` | `(value: FLOAT, min: FLOAT, max: FLOAT): BOOL` | Inclusive range |
+| `isNotNull` | `(value: OBJECT): BOOL` | Presence test |
+| `notNull` | `(value: V): V` | Assert non-null |
+| `if` | `(expression: BOOL, v1: V, v2: V): V` | Inline conditional |
+| `abs` | `(n: INT): INT` | Absolute value |
+| `trim` | `(s: STRING): STRING` | Strip whitespace |
+| `arrayFilter` | `(filter: (V) => BOOL, array: V[]): V[]` | Filter an array |
+| `arrayCount` | `(filter: (V) => BOOL, array: V[]): INT` | Count matching elements |
+| `hoursAgo` / `daysAgo` | `(value: INT): DATE` | Point in the past, for date comparisons |
+| `diffHours` / `diffMinutes` | `(date1: DATE, date2: DATE): INT` | Elapsed time between dates |
+| `toStartOfDay` | `(date: DATE): DATE` | Truncate to midnight |
+| `greatCircleDistance` | `(lat1, lon1, lat2, lon2: FLOAT): FLOAT` | Distance between coordinates — geo anomalies |
+
+Aggregate operations (`sum`, `min`, `max`, `avg`, `count`) are documented in the `txns` section as
+terminal operations on a stream, not as standalone functions.
 
 ---
 
@@ -374,7 +493,7 @@ Set a custom property on the transaction when the rule matches:
 
 ---
 
-## Payload Constraints Summary
+## Payload Constraints Summary (create mode)
 
 | Must include | Must NOT include |
 |---|---|
@@ -382,3 +501,5 @@ Set a custom property on the transaction when the rule matches:
 | `types` (min 1 value) | `scope`, `bgCheckTargets`, `dryRun`, `disabled` |
 | `conditionEl` for non-scheduled eval rules | `actual`, `revision`, timestamps, author fields |
 | `noEventTrigger` + applicant action for scheduled rules | Empty containers (`sourceKeys: []`, etc.) |
+
+Modify mode differs: send `"id": null`, the existing `name`, and the current `dryRun` / `disabled` — see SKILL.md, section "Modifying an Existing Rule".

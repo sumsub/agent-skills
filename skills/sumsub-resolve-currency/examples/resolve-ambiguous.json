@@ -1,0 +1,7 @@
+{
+  "_comment": "Same symbol, no chain. Must return status=ambiguous with the candidate list and exit 3 — never a guess. The server behaves the same way: an ambiguous lookup yields no currency at all, so the transaction ends up with no resolved asset and no amountInDefaultCurrency.",
+  "queries": [
+    { "code": "USDT" },
+    { "code": "USDC" }
+  ]
+}

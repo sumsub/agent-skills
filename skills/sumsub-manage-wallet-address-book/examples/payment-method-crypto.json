@@ -1,0 +1,10 @@
+{
+  "externalId": "wallet-btc-user-001",
+  "data": {
+    "type": "cryptoWallet",
+    "accountIdentifier": "bc1qmdld6jk0r3tvh39yqmet790t5vl3up2rcfzh0d",
+    "fullName": "John Smith",
+    "currencyCode": "BTC",
+    "cryptoChain": "BTC"
+  }
+}

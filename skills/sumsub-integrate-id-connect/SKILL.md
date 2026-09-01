@@ -13,9 +13,9 @@ preflight → button → backend exchange → consent → applicant in your work
 
 Do **not** use a production App Token / secret while wiring this up. Insist on
 a **sandbox** pair from
-<https://cockpit.sumsub.com/checkus/devSpace/appTokens> — toggle the workspace
-to **Sandbox** first, then **Create**. Token + secret are revealed once at
-creation; copy both before closing the dialog. The preflight enforces this
+<https://cockpit.sumsub.com/checkus/home?xSNSEnv=sbx> — **Connect Sumsub to
+your AI agent** -> **Build & configure** -> **Generate token**. Token + secret
+are revealed once at creation; copy both before closing the dialog. The preflight enforces this
 with an `sbx:` prefix check.
 
 Deeper auth mechanics: [`sumsub-api-auth`](../sumsub-api-auth/SKILL.md).
@@ -140,8 +140,9 @@ side. Each item maps to a check below or to a runtime failure if missed.
       ```
 
 - [ ] **App Token + secret (sandbox).** Minted at
-      <https://cockpit.sumsub.com/checkus/devSpace/appTokens> with workspace
-      toggled to Sandbox. Both values shown once at creation. → exported as
+      <https://cockpit.sumsub.com/checkus/home?xSNSEnv=sbx> via **Connect
+      Sumsub to your AI agent** -> **Build & configure** -> **Generate
+      token**. Both values shown once at creation. → exported as
       `SUMSUB_APP_TOKEN` / `SUMSUB_SECRET_KEY`.
 - [ ] **OIDC client registered** at Dashboard → Dev Space → OIDC Settings.
       Capture all three:

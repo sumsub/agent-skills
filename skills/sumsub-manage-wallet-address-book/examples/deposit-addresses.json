@@ -1,0 +1,9 @@
+{
+  "defaults": { "asset": "BTC", "chain": "BTC" },
+  "addresses": [
+    { "walletAddress": "bc1qmdld6jk0r3tvh39yqmet790t5vl3up2rcfzh0d" },
+    { "walletAddress": "3FZbgi29cpjq2GjdwV8eyHuJJnkLtktZc5" },
+    { "walletAddress": "0x7DF6AF1C17AC9F86F8B3FBBC25253B8B5DF2F3A1", "asset": "ETH", "chain": "ETH" },
+    { "walletAddress": "TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE", "asset": "USDT", "chain": "TRX" }
+  ]
+}

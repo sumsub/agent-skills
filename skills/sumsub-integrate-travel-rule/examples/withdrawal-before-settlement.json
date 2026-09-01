@@ -1,0 +1,38 @@
+{
+  "_comment": "Flow 1 — your user is withdrawing, nothing is on-chain yet. Feed this to sumsub-create-transaction. Note: no paymentTxnId; adding one would turn it into an after-settlement exchange.",
+
+  "_applicantId": "REPLACE_WITH_APPLICANT_ID",
+  "txnId": "tr-out-2026-05-21-0001",
+  "txnDate": "2026-05-21 14:40:00+0000",
+  "type": "travelRule",
+
+  "amount": 0.075,
+  "currency": "BTC",
+  "currencyType": "crypto",
+  "direction": "out",
+
+  "crypto": { "chain": "BTC" },
+
+  "applicant": {
+    "externalUserId": "user-001",
+    "type": "individual",
+    "firstNameEn": "John",
+    "lastNameEn": "Smith",
+    "nameType": "birthName",
+    "dob": "1990-05-01",
+    "residenceCountry": "USA",
+    "paymentMethod": { "type": "cryptoWallet", "accountId": "bc1qmywallet..." }
+  },
+
+  "counterparty": {
+    "externalUserId": "counterparty-001",
+    "type": "individual",
+    "firstNameEn": "Jack",
+    "lastNameEn": "Posek",
+    "nameType": "birthName",
+    "paymentMethod": { "type": "cryptoWallet", "accountId": "bc1qrecipientaddress..." },
+    "institution": {
+      "internalId": "REPLACE_WITH_VASP_ID_FROM_DIRECTORY"
+    }
+  }
+}

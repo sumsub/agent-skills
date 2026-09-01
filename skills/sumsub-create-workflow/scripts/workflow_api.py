@@ -95,7 +95,7 @@ def request(method, path, body: "bytes | str" = b""):
         "X-App-Access-Ts": ts,
         "X-App-Access-Sig": sig,
         "X-Agent-Source": "sumsub-skills",
-        "X-Agent-Source-Ver": "1.3.0",
+        "X-Agent-Source-Ver": "1.4.0",
         "Accept": "application/json",
     }
     # `-w '\nHTTP %{http_code}\n'` appends the status as a trailing line so we can

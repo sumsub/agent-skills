@@ -1,0 +1,9 @@
+{
+  "_comment": "The common case. USDT names many different assets; the chain is what makes it one. TRON, TRC20 and TRX all normalise to TRX.",
+  "queries": [
+    {
+      "code": "USDT",
+      "chain": "TRON"
+    }
+  ]
+}

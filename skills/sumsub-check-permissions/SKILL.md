@@ -1,6 +1,6 @@
 ---
 name: sumsub-check-permissions
-description: Fetch the current tenant's allowed entitlements (BackgroundCheckTarget list). Returns JSON with `allowed` (array of permission keys) and `descriptions` (map of key → human-readable label). Called by sumsub-create-level (and other create-* skills) before building a payload to gate entitlement-required features.
+description: Fetch the current tenant's allowed entitlements (BackgroundCheckTarget list). Returns JSON `{"allowedChecks": {key: label}}` — a map whose keys are the enabled entitlement keys. Called by sumsub-create-level (and other create-* skills) before building a payload to gate entitlement-required features.
 allowed-tools: Bash
 user-invocable: false
 ---

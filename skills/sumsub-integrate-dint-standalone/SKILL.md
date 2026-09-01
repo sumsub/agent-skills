@@ -32,9 +32,9 @@ shows the Sumsub WebSDK, stop — DI is built into it, use
 
 Do **not** accept or use a production App Token / secret during integration
 work. Insist on a **sandbox** pair from
-<https://cockpit.sumsub.com/checkus/devSpace/appTokens> — toggle the workspace
-to **Sandbox** first, then **Create**. Token + secret are revealed once at
-creation; copy both before closing the dialog. The curl recipes here assume an
+<https://cockpit.sumsub.com/checkus/home?xSNSEnv=sbx> — **Connect Sumsub to
+your AI agent** -> **Build & configure** -> **Generate token**. Token + secret
+are revealed once at creation; copy both before closing the dialog. The curl recipes here assume an
 `sbx:` token; the preflight enforces it with an `sbx:` prefix check. Deeper auth
 mechanics: [`sumsub-api-auth`](../sumsub-api-auth/SKILL.md).
 

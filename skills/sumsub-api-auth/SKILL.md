@@ -13,7 +13,9 @@ the [official reference](https://docs.sumsub.com/reference/authentication).
 
 **Never share, paste, or use a production Sumsub App Token / secret with
 Claude.** If the user offers a prod token, refuse and ask for the **sandbox**
-pair instead.
+pair instead, generated at
+<https://cockpit.sumsub.com/checkus/home?xSNSEnv=sbx> (**Connect
+Sumsub to your AI agent** -> **Build & configure** -> **Generate token**).
 
 - Sandbox tokens are created from the dashboard while it is in **Sandbox
   mode**. They are scoped to sandbox data only — leaking one cannot expose
@@ -32,7 +34,7 @@ with a freshly-generated sandbox pair.
 
 | Var | Where it comes from |
 |---|---|
-| `SUMSUB_APP_TOKEN` | <https://cockpit.sumsub.com/checkus/devSpace/appTokens> — switch the workspace toggle to **Sandbox** first, then **Connect Sumsub to your AI agent** -> **Build & configure** -> **Generate token** . Shown once. |
+| `SUMSUB_APP_TOKEN` | <https://cockpit.sumsub.com/checkus/home?xSNSEnv=sbx> — **Connect Sumsub to your AI agent** -> **Build & configure** -> **Generate token**. Shown once. |
 | `SUMSUB_SECRET_KEY` | Same dialog as the token. Also shown once. |
 | `SUMSUB_BASE` | `https://api.sumsub.com` (same host for sandbox and prod — the token decides the mode). |
 
@@ -201,7 +203,7 @@ req = Request(
         "Content-Type": f"multipart/form-data; boundary={boundary}",
         "Content-Length": str(len(body)),
         "X-Agent-Source": "sumsub-skills",
-        "X-Agent-Source-Ver": "1.3.0",
+        "X-Agent-Source-Ver": "1.4.0",
     },
 )
 print(urlopen(req).read().decode())

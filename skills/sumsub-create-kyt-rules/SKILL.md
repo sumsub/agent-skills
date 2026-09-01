@@ -42,9 +42,9 @@ skill — read it if you hit `401 Invalid signature`.
 
 > **⚠️ Sandbox tokens only.** Do **not** accept or use a production App Token
 > here. If the user offers one, refuse and ask them to generate a sandbox
-> pair at <https://cockpit.sumsub.com/checkus/devSpace/appTokens> (toggle
-> the workspace to **Sandbox** first, then **Create**). Token + secret are
-> shown once — copy both before closing the dialog. The helper script
+> pair at <https://cockpit.sumsub.com/checkus/home?xSNSEnv=sbx> (**Connect
+> Sumsub to your AI agent** -> **Build & configure** -> **Generate token**).
+> Token + secret are shown once — copy both before closing the dialog. The helper script
 > enforces this — it rejects tokens that don't start with `sbx:`.
 
 | Var | Example |
@@ -58,27 +58,54 @@ otherwise ask once before running. Never echo the secret back.
 
 ## Tenant Entitlements
 
-KYT rules require the `KYT` entitlement at minimum. Additional per-type requirements apply:
+Entitlements are gated **per transaction type**, not globally. Each `types` value needs
+**any one** of the keys listed for it — not all of them. There is no baseline entitlement
+that every rule requires: `KYT` is the entitlement for the `finance` type, nothing more.
 
-| Rule `types` value | Required entitlement |
+| Rule `types` value | Enabled by **any one** of |
 |---|---|
 | `finance` | `KYT` |
 | `travelRule` | `TRAVEL_RULE` |
-| `kyc` | `KYT` (or `TM_INDIVIDUAL_APPLICANT_SCORING`, `TM_COMPANY_APPLICANT_SCORING`, `KYT_ANTI_FRAUD`, `DEVICE_INTELLIGENCE`) |
-| `userPlatformEvent` | `KYT_ANTI_FRAUD` + `KYT` |
-| `scheduledEvent` | `TM_SCHEDULED_EVENTS` + `KYT` |
+| `kyc` | `TM_INDIVIDUAL_APPLICANT_SCORING` · `TM_COMPANY_APPLICANT_SCORING` · `KYT_ANTI_FRAUD` · `KYT` · `DEVICE_INTELLIGENCE` |
+| `userPlatformEvent` | `KYT_ANTI_FRAUD` · `KYT` |
+| `scheduledEvent` | `TM_SCHEDULED_EVENTS` · `KYT` |
 
-Before creating any rules, run `bash scripts/check_permissions.sh` from the
-[`sumsub-check-permissions`](../sumsub-check-permissions/SKILL.md) skill directory
-and verify `KYT` (and any type-specific permission) is present in the `allowed` array.
+A tenant that has only `TRAVEL_RULE` can create `travelRule` rules. A tenant that has only
+`DEVICE_INTELLIGENCE` can create `kyc` rules. Neither needs `KYT`. Do not require `KYT` for a
+type whose row does not list it.
 
-**If `KYT` is not in `allowed` — stop immediately.** Do not build or POST any rules.
-Tell the user the entitlement is missing and that they need to contact their CSM or Sumsub support to get it enabled.
+Before creating or modifying a rule, run `bash scripts/check_permissions.sh` from the
+[`sumsub-check-permissions`](../sumsub-check-permissions/SKILL.md) skill directory. The response
+body is `{"allowedChecks": {"<KEY>": "<description>", ...}}` — the **keys** of `allowedChecks`
+are the enabled entitlements. There is no `allowed` array.
+
+**Stop only when the requested type is not enabled** — i.e. none of the keys on that type's row
+appear in `allowedChecks`. Do not build or POST that rule. Name the type **as the user sees it**
+(see [Transaction Types](#transaction-types) — `kyc` is "Verification session events", never
+"kyc"), list the keys that would enable it joined by "or", and tell the user to contact their CSM
+or Sumsub support. Do not offer a
+different transaction type as a workaround — if the user wants a `travelRule` rule, a `finance`
+rule is not a substitute.
+
+**If the entitlement request itself fails** (non-200, timeout), warn the user that entitlements
+could not be verified and proceed anyway. The backend is the authority and enforces the same gate
+on `POST` — see the `No allowed transaction types found` row in step 6.
+
+> **Note on scheduled rules.** The scheduled *trigger mode* is licensed by `TM_SCHEDULED_EVENTS`
+> specifically, while the `scheduledEvent` *type* is also enabled by `KYT`. A tenant with only
+> `KYT` may therefore pass this gate and still be refused by the backend on `noEventTrigger`.
+> Build the rule as usual and surface the backend error verbatim if that happens.
 
 ## Procedure
 
-0. **Fetch tenant entitlements.** Run `sumsub-check-permissions` and store the `allowed` array.
-   Verify `KYT` is present; abort with an explanation if missing.
+0. **Fetch tenant entitlements — only when creating or modifying a rule.** Run
+   `sumsub-check-permissions` and keep the keys of `allowedChecks`. Once you know the rule's
+   `types`, check that row in [Tenant Entitlements](#tenant-entitlements) and abort if none of
+   its keys are present.
+
+   **Skip this step entirely** for work that is not a rule: tags, applicant assessment, risk
+   levels, and client lists need no entitlement. Do not look for an entitlements endpoint other
+   than the one `sumsub-check-permissions` calls — there is no other one.
 
 1. **Determine mode — create or modify.**
 
@@ -152,6 +179,14 @@ Tell the user the entitlement is missing and that they need to contact their CSM
    - **Exit 1** → HTTP 4xx/5xx; the response body contains the error message. Surface it verbatim,
      fix the expression, and re-POST.
 
+   The backend enforces the entitlement gate too. Two error messages mean the payload is fine and
+   retrying it unchanged will never work — stop retrying that rule and report:
+   - `No allowed transaction types found` → the tenant is not licensed for the `types` you sent.
+     Tell the user which types their `allowedChecks` does enable, and advise contacting their CSM.
+     Do not silently switch to a different type.
+   - `Unable to enable a rule without a specified condition` → the rule needs a `conditionEl`
+     (or, for `scheduledEvent`, a `noEventTrigger`).
+
    **Retry cap:** allow at most **10 POST attempts per rule**. If the 10th attempt still fails,
    mark that rule as **failed**, record the last error message, and move on to the next rule —
    do **not** abort the entire batch. Report all failed rules in step 9.
@@ -203,15 +238,24 @@ Express each rule as a JSON object before generating the full payload:
 
 ## Transaction Types
 
-| Type | When to use | `conditionEl` required? | Notes |
-|---|---|---|---|
-| `finance` | Payment transfers, deposits, withdrawals | Yes | Most common type |
-| `travelRule` | Travel-rule transactions | Yes | Requires `TRAVEL_RULE` entitlement |
-| `kyc` | KYC/verification session events | Yes | |
-| `userPlatformEvent` | Login, password reset, 2FA events | Yes | Requires `KYT_ANTI_FRAUD` |
-| `scheduledEvent` | Periodic applicant re-checks | No (use `noEventTrigger`) | Must be alone in `types` |
+| Type (API value) | Name to use with the user | When to use | `conditionEl` required? | Notes |
+|---|---|---|---|---|
+| `finance` | finance transactions | Payment transfers, deposits, withdrawals | Yes | Most common type |
+| `travelRule` | Travel Rule transactions | Travel-rule transactions | Yes | |
+| `kyc` | **Verification session events** | Verification session events on an applicant | Yes | Never write "kyc" in user-facing text |
+| `userPlatformEvent` | User platform events | Login, password reset, 2FA events | Yes | |
+| `scheduledEvent` | Scheduled events | Periodic applicant re-checks | No (use `noEventTrigger`) | Must be alone in `types` |
 
 Types may be combined in one rule except `scheduledEvent` which must be the only type.
+
+**The first column is the API value; the second is what the user reads.** Put the API value in
+`types` and nowhere else — in reports, refusals, and clarifying questions use the second column,
+the name the dashboard shows. `kyc` is the one that actually misleads: the dashboard has no "kyc"
+label anywhere, so a message naming it that way sends the user looking for something that does not
+exist. The other four are only prettified, but the dashboard's wording is still the one to use.
+
+Which types this tenant may use is gated per type — see
+[Tenant Entitlements](#tenant-entitlements), the single source for that mapping.
 
 ## Rule Actions
 
@@ -276,7 +320,19 @@ txns.finance.byApplicant.out.lastHours(24).count() > 3
 
 # Aggregation: total outgoing amount in last 30 days
 txns.finance.byApplicant.out.lastDays(30).sum(it.data.info.amountInDefaultCurrency) > 100000
+
+# KYC: questionnaire answer — nested questionnaire.section.item, dot notation only
+questionnaires.myQuestionnaireId.mySectionId.myItemId == 'salary'
+
+# KYC: same, when a segment contains a dash — backtick-quote that segment
+questionnaires.`my-quest-id`.mySectionId.myItemId == 'salary'
 ```
+
+Conditions on questionnaire answers have two traps that produce a rule which saves cleanly and
+never matches: the bracket form does not compile, and the compared value is the option's stored
+value, not the label shown to the applicant. Read
+[`references/kyt-rule-schema.md`](references/kyt-rule-schema.md) → `questionnaires` before writing
+one, including how to look up the three ids.
 
 For the full type system and all available fields, see [`references/kyt-rule-schema.md`](references/kyt-rule-schema.md).
 

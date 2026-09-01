@@ -1,0 +1,8 @@
+{
+  "_comment": "Native coins. An empty cryptoChain is a value meaning 'the native coin of its own chain'. Sending BTC/BTC is the common client mistake and normalises to the same asset — but do not rely on that, send the chain empty.",
+  "queries": [
+    { "code": "BTC" },
+    { "code": "BTC", "chain": "BTC" },
+    { "code": "ETH", "chain": "ETHEREUM" }
+  ]
+}

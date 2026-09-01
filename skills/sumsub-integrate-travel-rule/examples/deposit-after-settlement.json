@@ -1,0 +1,37 @@
+{
+  "_comment": "Flow 2 — a deposit already landed with no Travel Rule data and you are collecting it after the fact. paymentTxnId is what makes this an after-settlement exchange; omitting it would ask the counterparty to authorise a transfer that already happened. Check first that no exchange exists for this hash.",
+
+  "_applicantId": "REPLACE_WITH_APPLICANT_ID",
+  "txnId": "tr-in-2026-05-21-0007",
+  "txnDate": "2026-05-21 09:12:00+0000",
+  "type": "travelRule",
+
+  "amount": 1250.0,
+  "currency": "USDT",
+  "currencyType": "crypto",
+  "direction": "in",
+
+  "crypto": {
+    "chain": "ETH",
+    "paymentTxnId": "0xREPLACE_WITH_THE_ON_CHAIN_HASH"
+  },
+
+  "applicant": {
+    "externalUserId": "user-002",
+    "type": "individual",
+    "firstNameEn": "Maria",
+    "lastNameEn": "Rossi",
+    "nameType": "birthName",
+    "residenceCountry": "ITA",
+    "paymentMethod": { "type": "cryptoWallet", "accountId": "0xourdepositaddress..." }
+  },
+
+  "counterparty": {
+    "externalUserId": "counterparty-002",
+    "type": "individual",
+    "paymentMethod": { "type": "cryptoWallet", "accountId": "0xaddressthefundscamefrom..." },
+    "institution": {
+      "internalId": "REPLACE_WITH_VASP_ID_IF_YOU_KNOW_IT"
+    }
+  }
+}

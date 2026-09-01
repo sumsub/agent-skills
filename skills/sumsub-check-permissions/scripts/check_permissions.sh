@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Fetches tenant background-check entitlements from
 # GET /resources/api/agent/settings/bgCheckTargets
-# and returns JSON with `allowed` (array of permission keys) and
-# `descriptions` (map of key → human-readable description).
+# and returns JSON `{"allowedChecks": {key: label}}` — a map whose keys are
+# the enabled entitlement keys.
 #
 # Usage:
 #   SUMSUB_APP_TOKEN=sbx:...  SUMSUB_SECRET_KEY=...  bash check_permissions.sh
@@ -28,6 +28,6 @@ curl -sS -X "${METHOD}" \
   -H "X-App-Access-Sig: ${SIG}" \
   -H "Accept: application/json" \
   -H "X-Agent-Source: sumsub-skills" \
-  -H "X-Agent-Source-Ver: 1.3.0" \
+  -H "X-Agent-Source-Ver: 1.4.0" \
   -w '\nHTTP %{http_code}\n' \
   "${BASE%/}${PATH_Q}"

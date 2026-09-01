@@ -1,0 +1,7 @@
+{
+  "_comment": "Fiat is a membership test — run with --type fiat against the fiat catalogue. No chain, no contract, no ambiguity; matching is case-insensitive.",
+  "queries": [
+    { "code": "eur" },
+    { "code": "USD" }
+  ]
+}

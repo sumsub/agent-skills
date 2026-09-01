@@ -395,12 +395,14 @@ Information read from NFC Chip
 | <a name="PersonWatchlistCheckExpressionData.matchStatuses"></a>`matchStatuses` | List of `String`-s | Watchlist match statuses for the person. Either one of "unknown", "no_match", "potential_match", "false_positive", or "true_positive". |
 | <a name="PersonWatchlistCheckExpressionData.ongoingMatchStatuses"></a>`ongoingMatchStatuses` | List of `String`-s | Statuses of matches received in the latest ongoing update. Either one of "unknown", "no_match", "potential_match", "false_positive", or "true_positive". |
 | <a name="PersonWatchlistCheckExpressionData.ongoingUpdatedAt"></a>`ongoingUpdatedAt` | [`Date`](#DateExpressionData) | Date and time of the latest ongoing update of AML matches, if any. |
+| <a name="PersonWatchlistCheckExpressionData.tags"></a>`tags` | List of `String`-s | Tags can be added by AML rule with purpose to check it in another rule. |
 
 ### <a name="CompanyWatchlistCheckExpressionData"></a>`checks.companyWatchlist`
 
 | Field | Type | Description |
 | --- | --- | --- |
 | <a name="CompanyWatchlistCheckExpressionData.matchStatuses"></a>`matchStatuses` | List of `String`-s | Watchlist match statuses for the company. Either one of "unknown", "no_match", "potential_match", "false_positive", or "true_positive". |
+| <a name="CompanyWatchlistCheckExpressionData.tags"></a>`tags` | List of `String`-s | Tags can be added by AML rule with purpose to check it in another rule. |
 
 ### <a name="EmailConfirmationCheckExpressionData"></a>`checks.email`
 
@@ -636,6 +638,7 @@ Review Rejection label
 | `blocklisted` |  |
 | `invalidEmail` | Email address is invalid |
 | `gibberish` | Email address is gibberish. Like 1hasdhjelsf@gmail.com |
+| `freshEmail` | Email's First Seen date is recent — fresh email with short digital footprint history. |
 
 ### <a name="PhoneRiskLabel"></a>`Elements of applicant.riskLabels.phone`
 
@@ -647,6 +650,12 @@ Review Rejection label
 | `noWebRegistrations` | Phone number registration is not detected. |
 | `blocklisted` |  |
 | `disposable` | Disposable phone. |
+| `freshPhone` | Phone's First Seen date is recent — fresh phone number with short digital footprint history. |
+| `phoneCountryVsApplicantCountryMismatch` | Country of phone number mismatches the applicant country |
+| `phoneCountryVsIpCountryMismatch` | The phone number country does not match the IP address country |
+| `phoneCountryVsAddressCountryMismatch` | The phone number country does not match the physical address country |
+| `phoneCountryVsEmailDomainCountryMismatch` | The phone number country does not match the email domain country |
+| `phoneCountryVsCompanyCountryMismatch` | The phone number country does not match the company country |
 
 ### <a name="DeviceRiskLabel"></a>`Elements of applicant.riskLabels.device`
 
@@ -701,7 +710,6 @@ Review Rejection label
 | `ipLocationVsTimezoneMismatch` | Checks whether ip location timezone different from the browser timezone |
 | `browserLanguageMismatch` | Language of the browser does not match the language of the country IP address or id doc |
 | `emailDomainCountryMismatch` | Email domain mismatches known countries for applicants |
-| `phoneCountryMismatch` | Country of phone number mismatches the applicant country |
 | `strongLinkToFraudulentApplicants` | Applicant is strongly linked (Fraud Networks, Duplicate Search) to other applicants rejected for fraud |
 | `potentialLinkToFraudulentApplicants` | Applicant is potentially linked (Fraud Networks, Duplicate Search) to other applicants rejected for fraud |
 
@@ -723,12 +731,12 @@ Review Rejection label
 
 | Value | Description |
 | --- | --- |
-| `pep` | The user belongs to the PEP (Politically Exposed Person) category. |
-| `sanctions` | The user was found in sanctions lists. |
-| `terrorism` | The user is suspected of terrorism. |
-| `crime` | The user is suspected of criminal activity. |
+| `pep` | The screened entity belongs to the PEP (Politically Exposed Person) category. |
+| `sanctions` | The screened entity was found in sanctions lists. |
+| `terrorism` | The screened entity is suspected of terrorism. |
+| `crime` | The screened entity is suspected of criminal activity. |
 | `adverseMedia` | The compromising published information that is related to the user was found in the media. |
-| `fitnessProbity` | The user does not comply with Fitness and Probity regime. The core function of the Fitness and Probity Regime is to ensure that individuals in key and customer facing positions are competent and capable |
+| `fitnessProbity` | The screened entity does not comply with Fitness and Probity regime. The core function of the Fitness and Probity Regime is to ensure that individuals in key and customer facing positions are competent and capable |
 
 ### <a name="PersonRiskLabel"></a>`Elements of applicant.riskLabels.person`
 
@@ -740,7 +748,7 @@ Review Rejection label
 | `phoneNameMismatchFromWebServices` | Name mismatch with the names associated with the phone number. |
 | `noEmailNamesFromWebServices` | No email names are found in web services. |
 | `emailNameMismatchFromWebServices` | Name mismatch with the names associated with the email address. |
-| `manyUniquePersonsLinkedToContactData` | Contact data linked to multiple different names across the web. |
+| `manyUniquePersonsLinkedToContactData` | The contact data (email or phone) is linked to an anomalously large number of distinct unrelated identities, indicating potential large-scale fake identity creation or multi-accounting. |
 
 ### <a name="CompanyRiskLabel"></a>`Elements of applicant.riskLabels.company`
 
@@ -2021,7 +2029,9 @@ Extended POA subtypes. New values can be added. Is a separate service: ADVANCED_
 - [`checks`](#WorkflowExpressionContext.checks).[`paymentSource`](#BackgroundChecksExpressionData.paymentSource).[`extractedInfo`](#PaymentSourceCheckInfoExpressionData.extractedInfo).[`accountIdentifier`](#PaymentSourceInfoExpressionData.accountIdentifier)
 - [`checks`](#WorkflowExpressionContext.checks).[`paymentSource`](#BackgroundChecksExpressionData.paymentSource).[`extractedInfo`](#PaymentSourceCheckInfoExpressionData.extractedInfo).[`type`](#PaymentSourceInfoExpressionData.type)
 - [`checks`](#WorkflowExpressionContext.checks).[`ip`](#BackgroundChecksExpressionData.ip).[`country`](#IpCheckExpressionData.country)
+- [`checks`](#WorkflowExpressionContext.checks).[`companyWatchlist`](#BackgroundChecksExpressionData.companyWatchlist).[`tags`](#CompanyWatchlistCheckExpressionData.tags)
 - [`checks`](#WorkflowExpressionContext.checks).[`companyWatchlist`](#BackgroundChecksExpressionData.companyWatchlist).[`matchStatuses`](#CompanyWatchlistCheckExpressionData.matchStatuses)
+- [`checks`](#WorkflowExpressionContext.checks).[`personWatchlist`](#BackgroundChecksExpressionData.personWatchlist).[`tags`](#PersonWatchlistCheckExpressionData.tags)
 - [`checks`](#WorkflowExpressionContext.checks).[`personWatchlist`](#BackgroundChecksExpressionData.personWatchlist).[`ongoingUpdatedAt`](#PersonWatchlistCheckExpressionData.ongoingUpdatedAt).[`ageInDays`](#DateExpressionData.ageInDays)
 - [`checks`](#WorkflowExpressionContext.checks).[`personWatchlist`](#BackgroundChecksExpressionData.personWatchlist).[`ongoingUpdatedAt`](#PersonWatchlistCheckExpressionData.ongoingUpdatedAt).[`ageInYears`](#DateExpressionData.ageInYears)
 - [`checks`](#WorkflowExpressionContext.checks).[`personWatchlist`](#BackgroundChecksExpressionData.personWatchlist).[`ongoingUpdatedAt`](#PersonWatchlistCheckExpressionData.ongoingUpdatedAt).[`dayOfMonth`](#DateExpressionData.dayOfMonth)

@@ -1,0 +1,10 @@
+{
+  "_comment": "Recent outbound Travel Rule transactions. Narrow the window rather than raising the limit — the server caps it at 100.",
+  "criteria": {
+    "data.type": "travelRule",
+    "data.info.direction": "out",
+    "data.txnDate__gte": "2026-05-01 00:00:00"
+  },
+  "order": "-data.txnDate",
+  "limit": 100
+}

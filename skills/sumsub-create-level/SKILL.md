@@ -29,9 +29,9 @@ skill — read it if you hit `401 Invalid signature`.
 > **⚠️ Sandbox tokens only.** Do **not** accept or use a production App Token
 > here — creating a level is a workspace-visible write. If the user offers a
 > prod token, refuse and ask them to generate a sandbox pair at
-> <https://cockpit.sumsub.com/checkus/devSpace/appTokens> (toggle the
-> workspace to **Sandbox** first, then **Create**). Token + secret are
-> shown once — copy both before closing the dialog. The helper script
+> <https://cockpit.sumsub.com/checkus/home?xSNSEnv=sbx> (**Connect Sumsub to
+> your AI agent** -> **Build & configure** -> **Generate token**). Token +
+> secret are shown once — copy both before closing the dialog. The helper script
 > enforces this — it rejects tokens that don't start with `sbx:`.
 
 | Var | Example |
@@ -45,10 +45,10 @@ otherwise ask once before running. Never echo the secret back.
 
 ## Procedure
 
-0. **Fetch tenant entitlements.** Invoke the `sumsub-check-permissions` skill and parse the JSON result. Store the `allowed` array; use it for all feature-gate checks in step 2 and the entitlements section below. Do this before anything else.
+0. **Fetch tenant entitlements.** Invoke the `sumsub-check-permissions` skill and parse the JSON result. Store the `allowedChecks` map (its keys are the enabled entitlements); use it for all feature-gate checks in step 2 and the entitlements section below. Do this before anything else.
 1. **Check existing entities.** Before building anything, list existing levels, POA presets, and questionnaires (GET the respective list endpoints). If a matching entity already exists, offer to reuse its `id` and skip the POST — the server creates a duplicate on every POST with no name deduplication.
 2. **Translate the user's request to the compact spec** below — name, applicant type, and a list of doc-set steps in the order they should appear in the WebSDK flow.
-3. **Validate** — confirm every `type` is a real `IdDocSetType`, every `QUESTIONNAIRE` step has a `questionnaireDefId` that points to an existing questionnaire, every `PROOF_OF_RESIDENCE*` step has a `poaPresetId` / `poaStepSettingsId` (the server rejects the level if it's missing — run `sumsub-create-poa-preset` first if no preset exists), every `COMPANY` step has at least one named sub-step. Use the `allowed` array from step 0 to reject any entitlement-gated feature not present in it.
+3. **Validate** — confirm every `type` is a real `IdDocSetType`, every `QUESTIONNAIRE` step has a `questionnaireDefId` that points to an existing questionnaire, every `PROOF_OF_RESIDENCE*` step has a `poaPresetId` / `poaStepSettingsId` (the server rejects the level if it's missing — run `sumsub-create-poa-preset` first if no preset exists), every `COMPANY` step has at least one named sub-step. Use the `allowedChecks` keys from step 0 to reject any entitlement-gated feature not present in it.
 4. **Generate payload** — run `${CLAUDE_SKILL_DIR}/scripts/build_level.py` with the spec on stdin → full payload on stdout.
 5. **Show the resolved payload to the user and ask for explicit confirmation** before the first POST.
 6. **Create vs. update**:
@@ -71,7 +71,7 @@ otherwise ask once before running. Never echo the secret back.
 
 ## Tenant entitlements
 
-Many level settings are gated behind tenant entitlements (`allowedChecks`). Before enabling a feature, check that the required `BackgroundCheckTarget` is present in the `allowed` array returned by [`sumsub-check-permissions`](../sumsub-check-permissions/SKILL.md) (fetched in step 0).
+Many level settings are gated behind tenant entitlements (`allowedChecks`). Before enabling a feature, check that the required `BackgroundCheckTarget` is present as a key in the `allowedChecks` map returned by [`sumsub-check-permissions`](../sumsub-check-permissions/SKILL.md) (fetched in step 0).
 
 DocSet type → required permission (OR — any one suffices):
 
@@ -89,6 +89,8 @@ DocSet type → required permission (OR — any one suffices):
 | `DEVICE_CHECK` | `DEVICE_INTELLIGENCE` |
 
 Types not in this table (`IDENTITY`, `SELFIE`, `APPLICANT_DATA`, `EMAIL_VERIFICATION`, `PHONE_VERIFICATION`, etc.) are available to all tenants — no entitlement required.
+
+**AML / watchlist screening → `WATCHLISTS`.** This isn't a docSet — it's level-wide behavior. When `WATCHLISTS` is in `allowedChecks`, AML/PEP/sanctions screening runs **on by default** on every level (turn it off per-level with `disableWatchlists: true`). When `WATCHLISTS` is **absent**, screening is off tenant-wide and no level setting enables it — treat a policy that needs AML screening as blocked on the missing entitlement (contact CSM), same as the docSet gates above.
 
 **If a requested feature requires an entitlement the tenant doesn't have — stop immediately.** Do not build or POST the level. Tell the user which entitlement is missing, that the feature is unavailable on their account, and that they need to contact their CSM or Sumsub support to get it enabled. Resume only after the user confirms the entitlement has been added or explicitly decides to drop the feature.
 
@@ -129,6 +131,8 @@ Accepts JSON or YAML on stdin. The builder fills in sensible defaults for each d
   ]
 }
 ```
+
+> **New levels must be WebSDK 2.0 (`websdkNext: true`).** On **create**, the builder sets `websdkNext: true` automatically — you don't need it in the spec; just never set `websdkNext: false` (that ships a deprecated WebSDK 1.0 level). On **update** of an existing level (spec has an `id`), the builder leaves `websdkNext` **untouched** and you should too: upgrading a live level's SDK is a heavy client-side migration, so never flip it as a side effect of an unrelated PATCH — change it only if the user explicitly asks.
 
 ### Supported `docSets[].type` values
 
@@ -177,6 +181,13 @@ Verbatim labels from the Sumsub dashboard sidebar, paired with the API value to 
 - IDENTITY always gets `nfcVerificationSettings: {mode: disabled}` unless caller overrides.
 
 These match what the dashboard's own Vue watcher writes when the user first toggles Live capture. **Caveat on PATCH:** `requiredIdDocs.docSets` is replaced wholesale (only top-level Level fields merge) — every docSet in the PATCH spec must carry the full intended state, since omitted sub-fields are wiped. GET the level first and copy values you want to preserve.
+
+### AML / watchlist screening: two separate gates
+
+1. **Tenant gate — `WATCHLISTS` entitlement** (checked in step 0). If `WATCHLISTS` is in `allowedChecks`, AML screening is available and runs **by default** on every level. If it's **not**, screening is off for the whole tenant and **no level setting turns it on** — surface it as a missing entitlement (contact CSM), don't pretend the level enables it.
+2. **Level gate — `disableWatchlists`** (only matters when the tenant has `WATCHLISTS`). To turn screening **off for this level**, send the top-level `"disableWatchlists": true`; omit it (or `false`) to keep it on. `watchListCheckSettings.amlCaseType` only selects the *provider* (tenant-gated), and `useCustomWatchListCheckSettings` only picks custom-vs-inherited config — neither is an on/off switch.
+
+So for a policy that *requires* AML screening: confirm `WATCHLISTS` in step 0, then add nothing to the level and GET it back to confirm `disableWatchlists` isn't `true`. For a level that must **skip** AML, set `disableWatchlists: true`. Details: [references/level-schema.md](references/level-schema.md).
 
 ### Payment method verification (step or action)
 

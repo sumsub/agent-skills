@@ -1,0 +1,9 @@
+{
+  "_comment": "Addresses your users SEND FROM. Requests about an already-settled transfer ask about these — a book with only deposit addresses will not match them.",
+  "defaults": { "asset": "ETH", "chain": "ETH" },
+  "addresses": [
+    { "walletAddress": "0x5BB23977B6E52A7C79BCC5E55F1655B7A69C7622" },
+    { "walletAddress": "0x1DpmTCYP22FfcAp4FrmivXQTgrebaDPjKj" },
+    { "walletAddress": "bc1q080rkmk3kj86pxvf5nkxecdrw6nrx3zzy9xl7q", "asset": "BTC", "chain": "BTC" }
+  ]
+}

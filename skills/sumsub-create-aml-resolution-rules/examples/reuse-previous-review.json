@@ -1,0 +1,15 @@
+{
+  "name": "Copy decision from previous screening review",
+  "description": "If the same applicant was screened within the last 24 months, carries over the decision made on the prior check for this match.",
+  "condition": {
+    "or": [
+      { "and": [
+        { "op": "notEmpty", "args": [ { "exp": "match.previousReview" } ] },
+        { "op": "lt", "args": [ { "exp": "match.previousReview.modifiedAt.ageInYears" }, { "lit": "2" } ] }
+      ] }
+    ]
+  },
+  "review": {
+    "expression": "match.previousReview"
+  }
+}

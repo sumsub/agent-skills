@@ -59,7 +59,7 @@ CURL_ARGS=(
   -H "X-App-Access-Ts: ${TS}"
   -H "X-App-Access-Sig: ${SIG}"
   -H "X-Agent-Source: sumsub-skills"
-  -H "X-Agent-Source-Ver: 1.3.0"
+  -H "X-Agent-Source-Ver: 1.4.0"
   -H "Accept: application/json"
 )
 

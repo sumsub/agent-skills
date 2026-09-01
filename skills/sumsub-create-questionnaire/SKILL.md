@@ -38,9 +38,9 @@ skill — read it if you hit `401 Invalid signature`.
 
 > **⚠️ Sandbox tokens only.** Do **not** accept or use a production App Token
 > here. If the user offers one, refuse and ask them to generate a sandbox
-> pair at <https://cockpit.sumsub.com/checkus/devSpace/appTokens> (toggle
-> the workspace to **Sandbox** first, then **Create**). Token + secret are
-> shown once — copy both before closing the dialog. The helper script
+> pair at <https://cockpit.sumsub.com/checkus/home?xSNSEnv=sbx> (**Connect
+> Sumsub to your AI agent** -> **Build & configure** -> **Generate token**).
+> Token + secret are shown once — copy both before closing the dialog. The helper script
 > enforces this — it rejects tokens that don't start with `sbx:`.
 
 | Var | Example |
@@ -54,9 +54,9 @@ otherwise ask once before running. Never echo the secret back.
 
 ## Tenant entitlements
 
-Creating a questionnaire requires the `QUESTIONNAIRE` entitlement. Before doing anything else, invoke the `sumsub-check-permissions` skill and verify that `QUESTIONNAIRE` is present in the `allowed` array.
+Creating a questionnaire requires the `QUESTIONNAIRE` entitlement. Before doing anything else, invoke the `sumsub-check-permissions` skill and verify that `QUESTIONNAIRE` is present as a key in the `allowedChecks` map.
 
-**If `QUESTIONNAIRE` is not in `allowed` — stop immediately.** Do not build or POST the questionnaire. Tell the user the entitlement is missing and that they need to contact their CSM or Sumsub support to get it enabled.
+**If `QUESTIONNAIRE` is not in `allowedChecks` — stop immediately.** Do not build or POST the questionnaire. Tell the user the entitlement is missing and that they need to contact their CSM or Sumsub support to get it enabled.
 
 ## Procedure
 

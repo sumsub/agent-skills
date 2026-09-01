@@ -129,7 +129,11 @@ Each step accepts `{name, minDocsCnt, applicantLevelName, idDocTypes, idDocSubTy
 - **IDENTITY docapture is types-sensitive on read.** `ApplicantHelper.getCaptureParams` only renders the docapture projection if `docSet.types` intersects `PERSON_ID_DOCS_WO_TRAVEL_PASSPORT = {ID_CARD, PASSPORT, RESIDENCE_PERMIT, DRIVERS}`. A `videoRequired: docapture` step with `types: [TRAVEL_PASSPORT]` only would NOT live-capture in the dashboard — it'd fall through to null. Stick to the standard four types unless you know what you're doing.
 - **`videoRequired: disabled` (IDENTITY): `captureMode`/`uploaderMode` are silently dropped** by this builder when the input also includes them, matching the dashboard's Vue watcher that deletes both on toggle to File upload. Sending them is not an API error — just dead state — and this skill cleans them out before POST.
 - **Country restrictions** — `includedCountries` is allowlist semantics, `excludedCountries` is blocklist. Both are ISO-3166 alpha-3.
-- **AML provider is tenant-gated** — `amlCaseType` must match a provider the tenant is provisioned for, or POST returns 400 (e.g. *"Failed to update settings: amlwSearch is not allowed."*). Safe fallback: omit `amlCaseType` and set `useCustomWatchListCheckSettings: false` — the level inherits the tenant's default provider.
+- **AML / watchlist screening depends on the `WATCHLISTS` tenant entitlement first, then the level flag.** Two gates, in order:
+  - **Tenant gate:** screening exists only if `WATCHLISTS` is in the tenant's `allowedChecks` (from `sumsub-check-permissions`). If it's **absent**, AML/PEP/sanctions screening is **off for the whole tenant** and **no level setting turns it on** — the feature needs to be enabled by the tenant's CSM.
+  - **Level gate (when the tenant has `WATCHLISTS`):** It runs on a level unless you switch it **off** via the **inverted, top-level** Level field **`disableWatchlists`** (a sibling of `watchListCheckSettings`, not a member of it): `disableWatchlists: true` turns screening **off** for that level; absent or `false` leaves it **on**.
+  - So for a policy that *requires* AML screening: confirm `WATCHLISTS` is entitled, then send nothing extra (it's already on), and GET the level back to check `disableWatchlists` is not `true`.
+- **AML provider is tenant-gated** — `amlCaseType` (inside `watchListCheckSettings`) selects the screening provider and must match one the tenant is provisioned for, or POST returns 400 (e.g. *"Failed to update settings: amlwSearch is not allowed."*). This is separate from on/off (above). Safe fallback: omit `amlCaseType` and set `useCustomWatchListCheckSettings: false` — the level inherits the tenant's default provider.
 - **`deviceIntelligenceSettings.enabled: true` is silently downgraded** to `false` unless the tenant has the Device Intelligence entitlement. The API accepts the field and returns 200, but the stored value is `false`. Always GET the level back and report any discrepancy.
 - **Every POST creates a new entity** — the server does not deduplicate by name. Always list existing levels/presets/questionnaires first and reuse ids if a match is found.
 - **Always GET the level back after writing** — several fields land differently from what was sent (server-assigned `key`, silently dropped entitlement-gated fields, AML overrides). Compare sent vs returned and surface any discrepancy.
@@ -165,7 +169,7 @@ Sumsub uses generic types for country-specific documents:
 
 ## `websdkNext`
 
-Always include `"websdkNext": true`. WebSDK 1.0 is deprecated. Omitting leaves the level on the legacy SDK.
+**New levels must be WebSDK 2.0 (`websdkNext: true`); existing levels are left alone.** WebSDK 1.0 is deprecated, and omitting the flag on a raw API create leaves the level on the legacy SDK. So on **create** (no `id` in the spec) `build_level.py` **defaults `websdkNext` to `true`** — you can't accidentally ship a 1.0 level, and the only way to get 1.0 is to set `websdkNext: false` explicitly (don't). On **update** (spec has an `id`) the builder does **not** touch `websdkNext`: omitting it lets the PATCH merge keep the level's current value, because upgrading an existing level from 1.0 to 2.0 is a significant client-side migration that must not happen as a side effect. Change an existing level's `websdkNext` only when the user explicitly asks.
 
 ## Error recovery
 

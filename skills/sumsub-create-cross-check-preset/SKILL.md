@@ -69,9 +69,9 @@ skill — read it if you hit `401 Invalid signature`.
 > Token here — cross-check rules affect every verification on the
 > workspace. If the user offers a prod token, refuse and ask them to
 > generate a sandbox pair at
-> <https://cockpit.sumsub.com/checkus/devSpace/appTokens> (toggle the
-> workspace to **Sandbox** first, then **Create**). Token + secret are
-> shown once — copy both before closing the dialog. The helper scripts
+> <https://cockpit.sumsub.com/checkus/home?xSNSEnv=sbx> (**Connect Sumsub to
+> your AI agent** -> **Build & configure** -> **Generate token**). Token +
+> secret are shown once — copy both before closing the dialog. The helper scripts
 > enforce this — they reject tokens that don't start with `sbx:`.
 
 | Var | Example |

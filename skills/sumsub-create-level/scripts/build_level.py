@@ -396,10 +396,19 @@ def build_level(spec):
         "desc", "websdkNext", "rejectUsaResidents", "crossCheckPresetId",
         "ipRestrictionSettings", "applicantInsightSettings",
         "deviceIntelligenceSettings", "kytSettings", "watchListCheckSettings",
+        "useCustomWatchListCheckSettings", "disableWatchlists",
         "agreementSettings", "checkSourceSettings",
     ):
         if spec.get(k) is not None:
             payload[k] = spec[k]
+    # WebSDK 2.0 is mandatory for NEW levels: default websdkNext to true on create
+    # (no id in the spec) so a forgetful caller never ships a legacy WebSDK 1.0
+    # level. On UPDATE (id present) leave it untouched — upgrading an existing
+    # level's SDK is a heavy client migration, not something to force via a PATCH,
+    # and omitting the field lets the server keep the level's current value. An
+    # explicit websdkNext in the spec always wins, on create or update.
+    if not spec.get("id"):
+        payload.setdefault("websdkNext", True)
     return payload
 
 

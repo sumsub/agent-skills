@@ -1,0 +1,9 @@
+{
+  "_comment": "Ladder step 1 — the blockchain hash is exact and unique. Run this before creating an after-settlement exchange; a hit means an exchange already exists and you should answer it, not start a second one.",
+  "criteria": {
+    "data.type": "travelRule",
+    "data.info.paymentTxnId": "000000000000000000013f2851d71e6ea8dfcc9151654ca4cbbbfd759122589f"
+  },
+  "order": "-createdAt",
+  "limit": 1
+}

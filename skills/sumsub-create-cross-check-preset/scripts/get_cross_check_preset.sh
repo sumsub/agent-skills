@@ -46,6 +46,6 @@ curl -sS -X "${METHOD}" \
   -H "X-App-Access-Sig: ${SIG}" \
   -H "Accept: application/json" \
   -H "X-Agent-Source: sumsub-skills" \
-  -H "X-Agent-Source-Ver: 1.3.0" \
+  -H "X-Agent-Source-Ver: 1.4.0" \
   -w '\nHTTP %{http_code}\n' \
   "${BASE%/}${PATH_Q}"

@@ -7,7 +7,7 @@ allowed-tools: Read, Write, Bash, Grep
 # Sumsub — generic API fallback
 
 A skill of last resort. The Sumsub API has ~130 endpoints. The
-[OpenAPI 3.0.1 schema](https://api.sumsub.com/openapi.json)
+[OpenAPI 3.0.1 schema](https://api.sumsub.com/agents-openapi.json)
 is the source of truth — read it before guessing.
 
 ## When to invoke
@@ -50,7 +50,7 @@ and ask. Refuse production credentials on sight.
 ### 0. The schema is auto-fetched
 
 The helper scripts below pull the OpenAPI schema from
-<https://api.sumsub.com/openapi.json> on first use and cache
+<https://api.sumsub.com/agents-openapi.json> on first use and cache
 it for 24 hours at `~/.cache/sumsub/openapi.json` (or `$XDG_CACHE_HOME/sumsub/`).
 Stale caches refresh transparently on the next invocation. **No App Token or
 secret is required for the schema fetch itself** — only for the endpoints

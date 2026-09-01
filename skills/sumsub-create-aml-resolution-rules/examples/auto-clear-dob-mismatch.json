@@ -1,0 +1,32 @@
+{
+  "name": "Auto-clear hits with incompatible name and date of birth",
+  "description": "Marks a hit as false positive when both the name and the date of birth differ significantly from the applicant's data. ComplyAdvantage, individuals only.",
+  "condition": {
+    "or": [
+      { "and": [
+        { "op": "eq", "args": [ { "exp": "screening.vendor" }, { "lit": "\"complyAdvantageCSOM\"" } ] },
+        { "op": "ne", "args": [ { "exp": "input.entityType" }, { "lit": "\"company\"" } ] },
+        { "op": "call", "args": [
+          { "exp": "namesIncompatible" },
+          { "exp": "match" },
+          { "exp": "input.fullName" },
+          { "exp": "input.country" },
+          { "lit": "\"weakContainment\"" },
+          { "lit": "false" }
+        ] },
+        { "op": "notContainsAny", "args": [ { "exp": "match.complyAdvantage.matchTypes" }, { "lit": "[\"dob_exact\", \"year_of_birth\", \"year_and_month_of_birth\"]" } ] },
+        { "op": "eq", "args": [ { "exp": "match.dobs.hasData" }, { "lit": "true" } ] },
+        { "op": "call", "args": [
+          { "exp": "dobsIncompatible" },
+          { "exp": "match.dobs" },
+          { "exp": "input.dob" },
+          { "lit": "\"weakContainment\"" }
+        ] }
+      ] }
+    ]
+  },
+  "review": {
+    "matchStatus": "false_positive",
+    "note": "Marked as false positive because both name and date of birth differ significantly."
+  }
+}

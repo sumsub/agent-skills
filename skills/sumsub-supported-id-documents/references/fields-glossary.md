@@ -260,7 +260,7 @@ there is no error.
 Consequences for an edit:
 
 - Before checking any `extraFields` for a client, confirm they have `ADVANCED_OCR`
-  in their entitlements (the `allowed` array from `sumsub-check-permissions`).
+  in their entitlements (a key of `allowedChecks` from `sumsub-check-permissions`).
 - If they don't, warn the user that extra fields incur additional cost and that
   the change will be dropped server-side until `ADVANCED_OCR` is enabled — do
   not report success.

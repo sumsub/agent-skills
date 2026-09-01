@@ -1,6 +1,6 @@
 ---
 name: sumsub-analyze-regulation
-description: Analyze a regulation document (PDF or text) and produce a Sumsub configuration plan — mapping regulatory requirements to Sumsub entities (levels, questionnaires, PoA presets, TM rules, workflows). TRIGGER when the user provides a regulation PDF, legal act, or compliance requirement document and wants to know what to configure in Sumsub. Acts as the entry point before invoking sumsub-create-level, sumsub-create-questionnaire, sumsub-create-poa-preset, sumsub-create-workflow, and other skills. SKIP for direct entity creation requests (no regulatory context) or Sumsub API calls.
+description: Analyze a regulation document (PDF or text) and produce a Sumsub configuration plan — mapping regulatory requirements to Sumsub entities (levels, questionnaires, PoA presets, TM rules, workflows, AML resolution rules). TRIGGER when the user provides a regulation PDF, legal act, or compliance requirement document and wants to know what to configure in Sumsub. Acts as the entry point before invoking sumsub-create-level, sumsub-create-questionnaire, sumsub-create-poa-preset, sumsub-create-workflow, sumsub-create-aml-resolution-rules, and other skills. SKIP for direct entity creation requests (no regulatory context) or Sumsub API calls.
 allowed-tools: Read
 ---
 
@@ -30,6 +30,7 @@ Use extended thinking before formulating the response. Extract from the document
 - Address verification requirements (what documents are accepted, maximum age)
 - Enhanced Due Diligence conditions (what triggers EDD)
 - Source of funds / wealth / PEP data collection requirements
+- AML screening obligations (PEP / sanctions / adverse media) and how screening hits must be handled (false-positive clearing, PEP review policy, escalation of confirmed matches)
 - Transaction monitoring requirements (thresholds, suspicious patterns, crypto Travel Rule)
 - Periodic re-KYC obligations (how often customers must be re-verified)
 - What is **out of scope for Sumsub** (data retention timelines, regulatory reporting, sanctions list maintenance)
@@ -76,7 +77,7 @@ Defines the sequence of verification steps an applicant must complete. Each step
 **Level properties:**
 - `applicantType`: `individual` or `company`
 - `requiredIdDocs`: the ordered list of docSets + optional `includedCountries` / `excludedCountries`
-- `watchListCheckSettings`: enables AML/PEP/sanctions screening via watchlists
+- `disableWatchlists`: set to `true` if tenant has `WATCHLISTS` entitlement but needs to disable AML Screening for a particular level
 - `crossCheckPresetId`: cross-check preset for AML screening
 
 
@@ -229,7 +230,17 @@ Graph-based routing logic: determines which level an applicant goes through next
 
 Use when regulation requires risk-based routing (standard KYC for low-risk, EDD for high-risk), re-verification flows, or multi-stage onboarding.
 
-### G. Transaction Submission — `sumsub-create-transaction`
+### G. AML Resolution Rules — `sumsub-create-aml-resolution-rules`
+
+The **AML Resolution Rule Chain**: an ordered list of rules that auto-review AML screening hits. Each rule selects hits by condition (vendor match types, name/DoB compatibility, risk labels, previous reviews) and sets the hit's review — match status (`false_positive` / `potential_match` / `true_positive`), risk level, whitelisted flag, note — and/or tags the applicant.
+
+Use when the regulation permits or requires systematic hit disposition: auto-clearing false positives, carrying over prior review decisions, PEP out-of-office handling, or flagging nuanced cases for routing.
+
+**Relationship to other entities:** the screening runs on an applicant level when the tenant has `WATCHLISTS` entitlement and the level doesn't set `disableWatchlists: true`; the rule chain governs what happens to the AML matches it produces. Rule tags are common applicant tags and surface in workflow conditions as `checks.personWatchlist.tags` / `checks.companyWatchlist.tags` — e.g. a rule tags `youngPep`, a workflow routes those applicants to manual review.
+
+Requires an AI-purpose App Token and tenant enablement (the skill detects and reports if the API is unavailable).
+
+### H. Transaction Submission — `sumsub-create-transaction`
 
 Sends transaction data to Sumsub's KYT monitoring system. Distinct from TM Rules:
 - This skill handles **data submission** (what transaction data to send)
@@ -255,6 +266,8 @@ Covers: finance transactions, Travel Rule (crypto counterparty data), platform e
 | Electronic / non-document verification | `E_KYC` docSet | `sumsub-create-level` *(CSM activation required)* |
 | KYB — company verification | `COMPANY` / `COMPANY_DATA` / `COMPANY_BENEFICIARIES` | `sumsub-create-level` |
 | Risk-based routing (standard vs EDD) | Workflow with `exclusiveChoice` | `sumsub-create-workflow` |
+| Auto-review of AML screening hits (false-positive clearing, PEP rules) | AML Resolution Rule Chain | `sumsub-create-aml-resolution-rules` |
+| Screening-driven routing (e.g. flagged PEP → manual review) | AML rule tag + workflow condition on `checks.personWatchlist.tags` | `sumsub-create-aml-resolution-rules` + `sumsub-create-workflow` |
 | Transaction monitoring (thresholds, patterns) | KYT rules | `sumsub-create-kyt-rules` *(requires `KYT` license)* |
 | Crypto Travel Rule | `travelRule` transaction type + KYT rules | `sumsub-create-kyt-rules` *(requires `TRAVEL_RULE` license)* |
 | Periodic re-KYC obligation | TM Scheduled rule `byLevelName` | `sumsub-create-kyt-rules` *(requires `TM_SCHEDULED_EVENTS` license)* |
@@ -302,8 +315,7 @@ Produce the plan as a structured markdown document with two clearly separated se
   4. `QUESTIONNAIRE` — `questionnaireDefId`: `[questionnaire-slug]` _(defined in section 2 below)_
   5. `PROOF_OF_RESIDENCE` — `poaPresetId`: `[preset-id]` _(defined in section 3 below)_
   6. `DEVICE_CHECK` — ⚠️ requires `DEVICE_INTELLIGENCE` license _(Art. N — emulators, VPN/Tor, rooted devices)_
-- `watchListCheckSettings.enabled`: true
-  - `categories`: `[sanctions, pep, adverseMedia]` _(Art. N — PEP/sanctions screening mandatory)_
+- AML watchlist screening: requires the **`WATCHLISTS` tenant entitlement**; when present it is **on by default** — nothing to set _(Art. N — PEP/sanctions screening mandatory)_. If the tenant lacks `WATCHLISTS`, flag it as a blocking entitlement (CSM must enable it). Only note `disableWatchlists: false` if you want to be explicit; pick a provider with `watchListCheckSettings.amlCaseType` only if the regulation/tenant demands a specific one (tenant-gated).
 - Countries in scope: `includedCountries: [XXX]` | all countries
 → Next: `sumsub-create-level`
 
@@ -341,7 +353,16 @@ Produce the plan as a structured markdown document with two clearly separated se
 - Conditions: [by country / by questionnaire score / etc.]
 → Next: `sumsub-create-workflow`
 
-### 5. Transaction Data Submission (KYT)
+### 5. AML Resolution Rules (AML Resolution Rule Chain)
+[Include only if the regulation addresses AML hit handling]
+- Rule: [name] — [plain language: which hits → what review/tag]
+  e.g. "Hits whose name and date of birth both mismatch the applicant → false positive"
+  e.g. "PEP hits under age 30 → tag `youngPep`" _(routed by the workflow in section 4)_
+- Rule order: [decisive rules first, broad clean-up rules last]
+- Regulation reference: Art. N
+→ Next: `sumsub-create-aml-resolution-rules`
+
+### 6. Transaction Data Submission (KYT)
 - Transaction types to instrument: `finance` | `travelRule` | `userPlatformEvent`
 - Required fields per transaction: [counterparty name, wallet address, etc.] — _(Art. N)_
 → Next: `sumsub-create-transaction`
@@ -400,9 +421,10 @@ Adding values to client lists referenced in rule conditions (e.g., country block
 3. `sumsub-create-level` (standard KYC level)
 4. `sumsub-create-level` (EDD level, if needed)
 5. `sumsub-create-workflow` (if risk-based routing needed)
-6. `sumsub-create-kyt-rules` (TM rules, if regulation requires transaction monitoring)
-7. `sumsub-create-transaction` (instrument transaction submission)
-8. Dashboard — activate TM rules (move from test mode to live)
+6. `sumsub-create-aml-resolution-rules` (if AML hit auto-review needed; before the workflow when it routes on rule tags — the tag must exist first)
+7. `sumsub-create-kyt-rules` (TM rules, if regulation requires transaction monitoring)
+8. `sumsub-create-transaction` (instrument transaction submission)
+9. Dashboard — activate TM rules (move from test mode to live)
 ```
 
 ---
@@ -417,7 +439,7 @@ Adding values to client lists referenced in rule conditions (e.g., country block
 6. **Be concrete:** the plan must use actual Sumsub parameter names and enum values, not prose descriptions. Write `docTypes: [PASSPORT, ID_CARD, DRIVERS]`, not "Passport and national ID". Write `videoRequired: passiveLiveness`, not "advanced liveness". Write `fields: [firstName, lastName, dob, tin]`, not "name and tax number". Include country codes in ISO-3166 alpha-3 (`BRA`, not "Brazil"). Name questionnaire item types (`bool`, `select`, `text`). Use the country-specific document mapping table in the Capability Map to translate local document names to IdDocType codes.
 7. **Mark the boundary clearly:** every item in the plan must be in either ✅ (skills available now) or ⚠️ (Dashboard / skill in development). Never leave the boundary ambiguous.
 8. **E-KYC is always opt-in:** always mark E-KYC as requiring CSM activation. List the activation steps. Do not present it as a default option.
-9. **TM rules in plain language only:** describe trigger conditions and actions in business language (e.g., "block transactions over $50,000"). Do not write SumScript expressions or technical rule syntax — `sumsub-create-kyt-rules` handles that translation.
+9. **TM and AML resolution rules in plain language only:** describe trigger conditions and actions in business language (e.g., "block transactions over $50,000", "hits with mismatching name and date of birth → false positive"). Do not write SumScript expressions, condition ASTs, or technical rule syntax — `sumsub-create-kyt-rules` and `sumsub-create-aml-resolution-rules` handle that translation.
 10. **No TM rules without explicit requirement:** only include TM rules in the plan if the regulation explicitly requires transaction monitoring.
 11. **Licenses:** flag `DEVICE_INTELLIGENCE`, `E_KYC_TARGET`, `KYT`, `TRAVEL_RULE`, `TM_SCHEDULED_EVENTS` as requiring license verification.
 12. **Out of scope:** explicitly list requirements the regulation contains that Sumsub cannot fulfill (data retention, authority reporting, etc.).
@@ -432,6 +454,7 @@ Adding values to client lists referenced in rule conditions (e.g., country block
 | `sumsub-create-questionnaire` | Regulation requires SOF, PEP, wealth, employment, or risk profile collection |
 | `sumsub-create-poa-preset` | Regulation requires address verification |
 | `sumsub-create-workflow` | Regulation requires risk-based routing, EDD flow, or multi-stage onboarding |
+| `sumsub-create-aml-resolution-rules` | Regulation addresses AML hit handling — false-positive clearing, PEP review policy, or screening-driven escalation |
 | `sumsub-create-kyt-rules` | Regulation requires transaction monitoring rules (thresholds, suspicious patterns, periodic re-KYC, Travel Rule) |
 | `sumsub-create-transaction` | Regulation requires transaction monitoring data submission |
 | `sumsub-integrate-websdk` | Regulation has UX or front-end onboarding requirements |

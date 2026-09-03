@@ -41,7 +41,7 @@ writeup lives in [`sumsub-api-auth`](../sumsub-api-auth/SKILL.md).
 
 > **⚠️ Sandbox tokens only.** Read-only, but still: do not accept a production App Token. If the user
 > offers one, refuse and ask for a sandbox pair at
-> <https://cockpit.sumsub.com/checkus/home?xSNSEnv=sbx> (**Connect Sumsub to your AI agent** ->
+> <https://cockpit.sumsub.com/checkus/home?sbx=true> (**Connect Sumsub to your AI agent** ->
 > **Build & configure** -> **Generate token**). The helper
 > rejects tokens that don't start with `sbx:`.
 

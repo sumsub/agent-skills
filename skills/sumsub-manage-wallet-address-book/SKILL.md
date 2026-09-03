@@ -71,7 +71,7 @@ skill — read it if you hit `401 Invalid signature`.
 > here. Wallet addresses are business-identifying data, and a bad import in
 > production changes how real Travel Rule requests are answered. If the user
 > offers a production token, refuse and ask them to generate a sandbox pair at
-> <https://cockpit.sumsub.com/checkus/home?xSNSEnv=sbx> (**Connect Sumsub to your
+> <https://cockpit.sumsub.com/checkus/home?sbx=true> (**Connect Sumsub to your
 > AI agent** -> **Build & configure** -> **Generate token**). Token + secret are
 > shown once — copy both before closing the dialog. The helper script enforces this — it rejects
 > tokens that don't start with `sbx:` unless `SUMSUB_ALLOW_PROD=1` is set.

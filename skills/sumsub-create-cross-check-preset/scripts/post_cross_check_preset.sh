@@ -64,7 +64,7 @@ curl -sS -X "${METHOD}" \
   -H "Accept: application/json" \
   -H "Content-Type: application/json" \
   -H "X-Agent-Source: sumsub-skills" \
-  -H "X-Agent-Source-Ver: 1.4.0" \
+  -H "X-Agent-Source-Ver: 1.4.1" \
   --data-binary "@${PAYLOAD}" \
   -w '\nHTTP %{http_code}\n' \
   "${BASE%/}${PATH_Q}"

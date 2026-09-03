@@ -34,7 +34,7 @@ skill — read it if you hit `401 Invalid signature`.
 
 > **⚠️ Sandbox tokens only.** Do **not** accept or use a production App Token
 > here. If the user offers one, refuse and ask them to generate a sandbox
-> pair at <https://cockpit.sumsub.com/checkus/home?xSNSEnv=sbx> (**Connect
+> pair at <https://cockpit.sumsub.com/checkus/home?sbx=true> (**Connect
 > Sumsub to your AI agent** -> **Build & configure** -> **Generate token**).
 > Token + secret are shown once — copy both before closing the dialog. The helper script
 > enforces this — it rejects tokens that don't start with `sbx:`.
@@ -69,10 +69,10 @@ POA preset creation has historically been gated behind the `POA` entitlement, bu
 5. **Build the dashboard link.** Read `id` and `clientId` from the response body and format:
 
    ```
-   https://cockpit.sumsub.com/checkus/sdkIntegrations/globalSettings/userVerification/proofOfAddress/<id>?clientId=<clientId>&xSNSEnv=sbx
+   https://cockpit.sumsub.com/checkus/sdkIntegrations/globalSettings/userVerification/proofOfAddress/<id>?clientId=<clientId>&sbx=true
    ```
 
-   The `xSNSEnv=sbx` query param targets the **Sandbox** workspace — it is the canonical sandbox link param shared across all skills.
+   The `sbx=true` query param targets the **Sandbox** workspace — it is the canonical sandbox link param shared across all skills.
 6. **Report** — lead with the human-readable name; surface the id only at the end as the value to pass into the next API call:
    - **Name** and country scope (incl/excl) + per-country override countries.
    - A brief summary of what's accepted (provider types covered, default validity).
@@ -174,7 +174,7 @@ Standard `IdDocType` values: `PASSPORT`, `ID_CARD`, `RESIDENCE_PERMIT`, `DRIVERS
 On success, lead with the human-readable info:
 - `name`, country scope, list of per-country override countries.
 - A brief summary (provider types covered, default validity).
-- **Dashboard link**: `https://cockpit.sumsub.com/checkus/sdkIntegrations/globalSettings/userVerification/proofOfAddress/<id>?clientId=<clientId>&xSNSEnv=sbx`. Render as a clickable markdown link. Both `id` and `clientId` come from the POST response body; `xSNSEnv=sbx` targets the Sandbox workspace.
+- **Dashboard link**: `https://cockpit.sumsub.com/checkus/sdkIntegrations/globalSettings/userVerification/proofOfAddress/<id>?clientId=<clientId>&sbx=true`. Render as a clickable markdown link. Both `id` and `clientId` come from the POST response body; `sbx=true` targets the Sandbox workspace.
 - Finally, on its own line: `Preset ID (for level wiring / future PATCH): <id>`.
 
 On failure: HTTP status + Sumsub's `description`/`errorName`. The builder rejects invalid enums / impossible combinations upfront with precise messages.

@@ -32,7 +32,7 @@ never touch it directly; the SDK ships and drives it for you.
 
 Do **not** accept or use a production App Token / secret during integration
 work. Insist on a **sandbox** pair from
-<https://cockpit.sumsub.com/checkus/home?xSNSEnv=sbx> — **Connect Sumsub to
+<https://cockpit.sumsub.com/checkus/home?sbx=true> — **Connect Sumsub to
 your AI agent** -> **Build & configure** -> **Generate token**. Token + secret
 are revealed once at creation; copy both before closing the dialog. Helper scripts in sibling skills
 enforce this with an `sbx:` prefix check; the curl recipes here assume the same.
@@ -165,7 +165,7 @@ SIG=$(printf '%s%s%s' "$TS" "GET" "$PATH_Q" \
       | openssl dgst -sha256 -hmac "$SUMSUB_SECRET_KEY" -hex | awk '{print $NF}')
 curl -sS --fail-with-body -H "X-App-Token: $SUMSUB_APP_TOKEN" -H "X-App-Access-Ts: $TS" \
      -H "X-App-Access-Sig: $SIG" -H "X-Agent-Source: sumsub-skills" \
-     -H "X-Agent-Source-Ver: 1.4.0" \
+     -H "X-Agent-Source-Ver: 1.4.1" \
      "https://api.sumsub.com${PATH_Q}"
 ```
 

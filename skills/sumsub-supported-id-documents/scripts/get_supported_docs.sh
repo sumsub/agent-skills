@@ -43,7 +43,7 @@ HTTP_CODE="$(
     -H "X-App-Token: ${SUMSUB_APP_TOKEN}" \
     -H "X-App-Access-Ts: ${TS}" \
     -H "X-App-Access-Sig: ${SIG}" \
-    -H "X-Agent-Source-Ver: 1.4.0" \
+    -H "X-Agent-Source-Ver: 1.4.1" \
     -H "Accept: application/json" \
     -o "${BODY_FILE}" \
     -w '%{http_code}' \

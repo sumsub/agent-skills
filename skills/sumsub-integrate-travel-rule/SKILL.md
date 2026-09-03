@@ -20,7 +20,7 @@ API complains. This recipe is organised around those omissions.
 Do **not** accept or use a production App Token here. Travel Rule acts on real
 transfers and real counterparty VASPs, and a test exchange sent to a live
 counterparty puts a real request in a real compliance queue. Insist on a
-sandbox pair from <https://cockpit.sumsub.com/checkus/home?xSNSEnv=sbx> —
+sandbox pair from <https://cockpit.sumsub.com/checkus/home?sbx=true> —
 **Connect Sumsub to your AI agent** -> **Build & configure** -> **Generate
 token**. Token + secret are revealed once; copy both before closing the dialog.
 

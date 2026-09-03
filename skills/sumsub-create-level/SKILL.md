@@ -29,7 +29,7 @@ skill — read it if you hit `401 Invalid signature`.
 > **⚠️ Sandbox tokens only.** Do **not** accept or use a production App Token
 > here — creating a level is a workspace-visible write. If the user offers a
 > prod token, refuse and ask them to generate a sandbox pair at
-> <https://cockpit.sumsub.com/checkus/home?xSNSEnv=sbx> (**Connect Sumsub to
+> <https://cockpit.sumsub.com/checkus/home?sbx=true> (**Connect Sumsub to
 > your AI agent** -> **Build & configure** -> **Generate token**). Token +
 > secret are shown once — copy both before closing the dialog. The helper script
 > enforces this — it rejects tokens that don't start with `sbx:`.
@@ -58,10 +58,10 @@ otherwise ask once before running. Never echo the secret back.
 8. **Build the dashboard link.** Read `id`, `applicantType`, and `clientId` from the response body and format:
 
    ```
-   https://cockpit.sumsub.com/checkus/sdkIntegrations/levels/<applicantType>Level/<id>?clientId=<clientId>&xSNSEnv=sbx
+   https://cockpit.sumsub.com/checkus/sdkIntegrations/levels/<applicantType>Level/<id>?clientId=<clientId>&sbx=true
    ```
 
-   The `<applicantType>Level` segment is literally `individualLevel` for `applicantType: individual` (confirmed) and `companyLevel` for `applicantType: company` (assumed by analogy — surface as the best guess and flag if it 404s). The `xSNSEnv=sbx` query param targets the **Sandbox** workspace — it is the canonical sandbox link param shared across all skills.
+   The `<applicantType>Level` segment is literally `individualLevel` for `applicantType: individual` (confirmed) and `companyLevel` for `applicantType: company` (assumed by analogy — surface as the best guess and flag if it 404s). The `sbx=true` query param targets the **Sandbox** workspace — it is the canonical sandbox link param shared across all skills.
 9. **Report** — lead with the human-readable name:
    - `name`, `applicantType`, ordered list of docSets created.
    - **Dashboard link** as a clickable markdown link.
@@ -270,7 +270,7 @@ See [`examples/with-presets.json`](examples/with-presets.json) for an end-to-end
 
 On success, lead with the human-readable info:
 - `name`, `applicantType`, ordered list of `docSets[].idDocSetType`.
-- **Dashboard link**: `https://cockpit.sumsub.com/checkus/sdkIntegrations/levels/<applicantType>Level/<id>?clientId=<clientId>&xSNSEnv=sbx`. Render as a clickable markdown link. The `<applicantType>Level` segment is `individualLevel` for individuals (confirmed) or `companyLevel` for companies (assumed pattern). All three fields (`id`, `applicantType`, `clientId`) come from the POST response body; `xSNSEnv=sbx` targets the Sandbox workspace.
+- **Dashboard link**: `https://cockpit.sumsub.com/checkus/sdkIntegrations/levels/<applicantType>Level/<id>?clientId=<clientId>&sbx=true`. Render as a clickable markdown link. The `<applicantType>Level` segment is `individualLevel` for individuals (confirmed) or `companyLevel` for companies (assumed pattern). All three fields (`id`, `applicantType`, `clientId`) come from the POST response body; `sbx=true` targets the Sandbox workspace.
 - Finally, on its own line: `Level ID (for SDK access tokens / future PATCH): <id>`.
 
 On failure: HTTP status + the `description`/`errorName` from Sumsub's error envelope.

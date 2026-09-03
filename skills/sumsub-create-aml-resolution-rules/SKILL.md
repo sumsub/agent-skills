@@ -48,7 +48,7 @@ skill — read it if you hit `401 Invalid signature`.
 > **⚠️ Sandbox tokens only.** Do **not** accept or use a production App Token
 > here — these rules auto-review real AML hits. If the user offers a prod
 > token, refuse and ask them to generate a sandbox pair at
-> <https://cockpit.sumsub.com/checkus/home?xSNSEnv=sbx> (**Connect Sumsub to
+> <https://cockpit.sumsub.com/checkus/home?sbx=true> (**Connect Sumsub to
 > your AI agent** -> **Build & configure** -> **Generate token** — that page
 > mints the **AI** token these endpoints require, see above). Token + secret
 > are shown once — copy both before closing the dialog. `aml_rules_api.py` enforces this — it rejects tokens
@@ -109,9 +109,9 @@ Both skills author the **same Condition AST** (see below), so the two halves rea
 10. **Publish only on explicit request** (see the "Publishing affects LIVE production" note): `${CLAUDE_SKILL_DIR}/scripts/aml_rules_api.py publish`. Publishing makes the chain live against real AML hits **across live and sandbox** — never publish without the user asking; until then the draft is dormant. The backend may **refuse** the publish once the chain is active (too many applicants already processed / integration complete) — a `4xx`. That's expected: report it and direct the user to publish from the Sumsub web UI (see the Endpoints note).
 11. **Report** (lead with rule names, never bare ids):
     - The rule chain in evaluation order (names), the draft `revision`, and a notices summary.
-    - Draft (editable) view: [https://cockpit.sumsub.com/checkus/sdkIntegrations/globalSettings/amlScreening?revision=draft&tab=amlRules&xSNSEnv=sbx](https://cockpit.sumsub.com/checkus/sdkIntegrations/globalSettings/amlScreening?revision=draft&tab=amlRules&xSNSEnv=sbx)
-    - Published (live) view, after publishing: [https://cockpit.sumsub.com/checkus/sdkIntegrations/globalSettings/amlScreening?revision=published&tab=amlRules&xSNSEnv=sbx](https://cockpit.sumsub.com/checkus/sdkIntegrations/globalSettings/amlScreening?revision=published&tab=amlRules&xSNSEnv=sbx)
-    - Render both as clickable markdown links; `xSNSEnv=sbx` targets the Sandbox workspace.
+    - Draft (editable) view: [https://cockpit.sumsub.com/checkus/sdkIntegrations/globalSettings/amlScreening?revision=draft&tab=amlRules&sbx=true](https://cockpit.sumsub.com/checkus/sdkIntegrations/globalSettings/amlScreening?revision=draft&tab=amlRules&sbx=true)
+    - Published (live) view, after publishing: [https://cockpit.sumsub.com/checkus/sdkIntegrations/globalSettings/amlScreening?revision=published&tab=amlRules&sbx=true](https://cockpit.sumsub.com/checkus/sdkIntegrations/globalSettings/amlScreening?revision=published&tab=amlRules&sbx=true)
+    - Render both as clickable markdown links; `sbx=true` targets the Sandbox workspace.
     - End with a dedicated `Rule id (for future updates / reorder): <id>` line — the one place a raw id belongs in your output.
     - On failure: surface Sumsub's `description` / `errorName` verbatim.
 

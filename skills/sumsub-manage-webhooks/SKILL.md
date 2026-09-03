@@ -34,7 +34,7 @@ skill — read it if you hit `401 Invalid signature`.
 
 > **⚠️ Sandbox tokens only.** Do **not** accept or use a production App Token
 > here. If the user offers one, refuse and ask them to generate a sandbox
-> pair at <https://cockpit.sumsub.com/checkus/home?xSNSEnv=sbx> (**Connect
+> pair at <https://cockpit.sumsub.com/checkus/home?sbx=true> (**Connect
 > Sumsub to your AI agent** -> **Build & configure** -> **Generate token**).
 > Token + secret are shown once — copy both before closing the dialog. The helper script
 > enforces this — it rejects tokens that don't start with `sbx:` unless

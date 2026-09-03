@@ -78,7 +78,7 @@ mechanics in [`sumsub-api-auth`](../../sumsub-api-auth/SKILL.md).
 > **⚠️ Sandbox tokens only.** `manualVerify` asserts that a real user owns a
 > real wallet and feeds the Wallet Address Book, which changes how later
 > transfers are judged. Refuse production tokens; get a sandbox pair at
-> <https://cockpit.sumsub.com/checkus/home?xSNSEnv=sbx>. The helper scripts
+> <https://cockpit.sumsub.com/checkus/home?sbx=true>. The helper scripts
 > reject tokens without an `sbx:` prefix.
 
 | Var | Example |

@@ -31,7 +31,7 @@ skill — read it if you hit `401 Invalid signature`.
 > **⚠️ Sandbox tokens only.** Do **not** accept or use a production App Token
 > here — transaction monitoring acts on real applicant data and can fire
 > real KYT alerts. If the user offers a prod token, refuse and ask them to
-> generate a sandbox pair at <https://cockpit.sumsub.com/checkus/home?xSNSEnv=sbx>
+> generate a sandbox pair at <https://cockpit.sumsub.com/checkus/home?sbx=true>
 > (**Connect Sumsub to your AI agent** -> **Build & configure** ->
 > **Generate token**). Token + secret are shown once — copy both before
 > closing the dialog. The helper
@@ -69,10 +69,10 @@ otherwise ask once before running. Never echo the secret back.
 5. **Build the dashboard link.** Read `id` (the **server-assigned identifier**, not the `txnId` you supplied) and `clientId` from the response body and format:
 
    ```
-   https://cockpit.sumsub.com/checkus/kyt/txns/<id>?clientId=<clientId>&xSNSEnv=sbx
+   https://cockpit.sumsub.com/checkus/kyt/txns/<id>?clientId=<clientId>&sbx=true
    ```
 
-   The user-supplied `txnId` in the spec (e.g. `finance-2026-05-21-0001`) is **not** what goes in the URL — Sumsub assigns a separate identifier on persistence. The `xSNSEnv=sbx` query param targets the **Sandbox** workspace — it is the canonical sandbox link param shared across all skills.
+   The user-supplied `txnId` in the spec (e.g. `finance-2026-05-21-0001`) is **not** what goes in the URL — Sumsub assigns a separate identifier on persistence. The `sbx=true` query param targets the **Sandbox** workspace — it is the canonical sandbox link param shared across all skills.
 6. **Report**: `txnId` (yours), the server `id`, applicant `externalUserId`, direction + amount + currency, counterparty (if any), the response's `score` / `reviewAnswer` / `riskLabels` if present, and the **dashboard link as a clickable markdown link**.
 
 ## Compact spec format (JSON or YAML on stdin)
@@ -190,7 +190,7 @@ On success, report all of:
 - Applicant `externalUserId`.
 - `direction amount currency`, counterparty (if any).
 - The response's `score` / `reviewAnswer` / `riskLabels` if returned.
-- **Dashboard link**: `https://cockpit.sumsub.com/checkus/kyt/txns/<id>?clientId=<clientId>&xSNSEnv=sbx`. Render as a clickable markdown link. `<id>` is the **server-assigned identifier** (not the `txnId` you sent); both it and `clientId` are in the POST response body; `xSNSEnv=sbx` targets the Sandbox workspace.
+- **Dashboard link**: `https://cockpit.sumsub.com/checkus/kyt/txns/<id>?clientId=<clientId>&sbx=true`. Render as a clickable markdown link. `<id>` is the **server-assigned identifier** (not the `txnId` you sent); both it and `clientId` are in the POST response body; `sbx=true` targets the Sandbox workspace.
 
 On failure: HTTP status + Sumsub's `description`/`errorName`. Most likely 4xx cases:
 - `409 Entity already exists` — `txnId` collision (use a fresh id or the bulk-import method to update).

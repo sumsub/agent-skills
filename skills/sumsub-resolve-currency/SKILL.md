@@ -40,7 +40,7 @@ mechanics in [`sumsub-api-auth`](../sumsub-api-auth/SKILL.md).
 > **⚠️ Sandbox tokens only.** The helper script refuses tokens that don't start
 > with `sbx:` unless `SUMSUB_ALLOW_PROD=1`. This endpoint is read-only, but the
 > same rule applies across these skills — get a sandbox pair at
-> <https://cockpit.sumsub.com/checkus/home?xSNSEnv=sbx> (**Connect Sumsub to your AI agent** -> **Build & configure** -> **Generate token**).
+> <https://cockpit.sumsub.com/checkus/home?sbx=true> (**Connect Sumsub to your AI agent** -> **Build & configure** -> **Generate token**).
 
 | Var | Example |
 |---|---|

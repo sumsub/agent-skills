@@ -42,7 +42,7 @@ skill — read it if you hit `401 Invalid signature`.
 
 > **⚠️ Sandbox tokens only.** Do **not** accept or use a production App Token
 > here. If the user offers one, refuse and ask them to generate a sandbox
-> pair at <https://cockpit.sumsub.com/checkus/home?xSNSEnv=sbx> (**Connect
+> pair at <https://cockpit.sumsub.com/checkus/home?sbx=true> (**Connect
 > Sumsub to your AI agent** -> **Build & configure** -> **Generate token**).
 > Token + secret are shown once — copy both before closing the dialog. The helper script
 > enforces this — it rejects tokens that don't start with `sbx:`.
@@ -196,7 +196,7 @@ on `POST` — see the `No allowed transaction types found` row in step 6.
 
 8. **Build the dashboard link** for each rule:
    ```
-   https://cockpit.sumsub.com/checkus/kyt/rulesManager/rulesList/{name}?clientId={clientId}&xSNSEnv=sbx
+   https://cockpit.sumsub.com/checkus/kyt/rulesManager/rulesList/{name}?clientId={clientId}&sbx=true
    ```
    `name` and `clientId` come from the POST response body. Render as a clickable markdown link.
 
@@ -503,7 +503,7 @@ If `conditionEl` changed, the POST validates it automatically. If the server ret
 - GET the rule back by the new `id` to verify.
 - The dashboard link uses the old `name`:
   ```
-  https://cockpit.sumsub.com/checkus/kyt/rulesManager/rulesList/{name}?clientId={clientId}&xSNSEnv=sbx
+  https://cockpit.sumsub.com/checkus/kyt/rulesManager/rulesList/{name}?clientId={clientId}&sbx=true
   ```
 - Report the new `revision` number alongside the title and updated fields.
 

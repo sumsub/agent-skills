@@ -75,7 +75,7 @@ mechanics in [`sumsub-api-auth`](../../sumsub-api-auth/SKILL.md).
 
 > **⚠️ Sandbox tokens only.** This is read-only, but transaction records are
 > real customer data. The helper script rejects tokens without an `sbx:`
-> prefix. Sandbox pair: <https://cockpit.sumsub.com/checkus/home?xSNSEnv=sbx>.
+> prefix. Sandbox pair: <https://cockpit.sumsub.com/checkus/home?sbx=true>.
 
 | Var | Example |
 |---|---|

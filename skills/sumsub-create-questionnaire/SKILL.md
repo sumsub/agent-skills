@@ -38,7 +38,7 @@ skill — read it if you hit `401 Invalid signature`.
 
 > **⚠️ Sandbox tokens only.** Do **not** accept or use a production App Token
 > here. If the user offers one, refuse and ask them to generate a sandbox
-> pair at <https://cockpit.sumsub.com/checkus/home?xSNSEnv=sbx> (**Connect
+> pair at <https://cockpit.sumsub.com/checkus/home?sbx=true> (**Connect
 > Sumsub to your AI agent** -> **Build & configure** -> **Generate token**).
 > Token + secret are shown once — copy both before closing the dialog. The helper script
 > enforces this — it rejects tokens that don't start with `sbx:`.
@@ -70,10 +70,10 @@ Creating a questionnaire requires the `QUESTIONNAIRE` entitlement. Before doing 
 5. **Build the dashboard link.** Read `id` and `clientId` from the response body (both fields are present on the persisted questionnaire) and format:
 
    ```
-   https://cockpit.sumsub.com/checkus/sdkIntegrations/questionnaireDetails/<id>?clientId=<clientId>&xSNSEnv=sbx
+   https://cockpit.sumsub.com/checkus/sdkIntegrations/questionnaireDetails/<id>?clientId=<clientId>&sbx=true
    ```
 
-   The `xSNSEnv=sbx` query param targets the **Sandbox** workspace — it is the canonical sandbox link param shared across all skills.
+   The `sbx=true` query param targets the **Sandbox** workspace — it is the canonical sandbox link param shared across all skills.
 6. **Report** — lead with the human-readable title:
    - `title`, section/item count, country/lang coverage if relevant.
    - **Dashboard link** as a clickable markdown link.
@@ -117,7 +117,7 @@ JSON or YAML accepted on stdin. English titles are auto-wrapped into `localizedT
 
 On success, lead with the human-readable info:
 - `title`, section/item count, `createdAt`.
-- **Dashboard link**: `https://cockpit.sumsub.com/checkus/sdkIntegrations/questionnaireDetails/<id>?clientId=<clientId>&xSNSEnv=sbx`. Render as a clickable markdown link so the user can jump to the entity. Both `id` and `clientId` are in the POST response body; `xSNSEnv=sbx` targets the Sandbox workspace.
+- **Dashboard link**: `https://cockpit.sumsub.com/checkus/sdkIntegrations/questionnaireDetails/<id>?clientId=<clientId>&sbx=true`. Render as a clickable markdown link so the user can jump to the entity. Both `id` and `clientId` are in the POST response body; `sbx=true` targets the Sandbox workspace.
 - Finally, on its own line: `Questionnaire ID (slug, for level wiring / future PATCH): <id>`.
 
 On failure: print HTTP status + `description`/`type` from the error envelope; do not retry blindly. On `409 CONFLICT` from POST — suggest PATCH for an update.

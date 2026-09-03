@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/anthropics/skills/main/schema/skills.json",
   "name": "@sumsub/agent-skills",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "skills": [
     {
       "name": "sumsub-api-auth",

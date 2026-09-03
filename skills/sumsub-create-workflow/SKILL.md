@@ -1,6 +1,6 @@
 ---
 name: sumsub-create-workflow
-description: Create a Sumsub applicant workflow — verification routing (levels, branches, country/age rules, final-rejection or manual-review steps) or an action workflow (post-verification tagging, notes, source-key changes). TRIGGER on requests to create/build/add a workflow or a flowchart-style routing description. Builds, validates, and saves a draft, then publishes it — gated by live traffic: automatically when the workflow's traffic is low, only after explicit confirmation when it's high. Publishing changes LIVE traffic — see the Danger section. SKIP for editing arbitrary fields of an existing revision, or for questionnaires/levels (separate skills).
+description: Create a Sumsub applicant workflow — verification routing (levels, branches, country/age rules, final-rejection or manual-review steps) or an action workflow (post-verification tagging, notes, source-key changes). TRIGGER on requests to create/build/add a workflow or a flowchart-style routing description. Builds, validates, and saves a draft, then publishes it — gated by live traffic — automatically when the workflow's traffic is low, only after explicit confirmation when it's high. Publishing changes LIVE traffic — see the Danger section. SKIP for editing arbitrary fields of an existing revision, or for questionnaires/levels (separate skills).
 allowed-tools: Read, Write, Bash
 ---
 
@@ -116,10 +116,10 @@ These three govern every step below; the procedure points back here where each o
 7. **Build the dashboard link** from `clientId` in the response body:
 
    ```
-   https://cockpit.sumsub.com/checkus/sdkIntegrations/workflows/active/applicant?clientId=<clientId>&xSNSEnv=sbx
+   https://cockpit.sumsub.com/checkus/sdkIntegrations/workflows/active/applicant?clientId=<clientId>&sbx=true
    ```
 
-   `xSNSEnv=sbx` targets the Sandbox workspace. ⚠️ Not a per-`id` deep link — it shows the current draft; tell the user to click promptly.
+   `sbx=true` targets the Sandbox workspace. ⚠️ Not a per-`id` deep link — it shows the current draft; tell the user to click promptly.
 8. **Publish — the default end of a build, gated by exposure.** Skip only if the user opted out (*"just save a draft"*) — a draft routes no traffic, so it's not a useful end state on its own. The draft must have last validated clean (step 5) — the API refuses to publish a revision with any `error` notice. Run `${CLAUDE_SKILL_DIR}/scripts/workflow_api.py publish <draft-id>`; it owns the **live-exposure gate** (defined in Danger) and does one of two things:
    - **Low exposure** → it **publishes directly**; you're done.
    - **High exposure** → it **refuses before changing anything**, printing the exposure count and the currently-published revision's `id` (your one-command rollback point). To proceed, run the guarded flow: diff the draft against that published revision, disclose the change **and that count** to the user (*"makes revision N live for ALL real production traffic; the current published revision — whose levels have ~M recent applicants — will be auto-archived"*), get an **explicit "yes"**, then re-run prefixed with `SUMSUB_ALLOW_WORKFLOW_PUBLISH=1`.

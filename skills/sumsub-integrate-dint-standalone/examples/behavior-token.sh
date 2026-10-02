@@ -42,7 +42,7 @@ curl -sS --fail-with-body -X POST \
   -H "X-App-Access-Ts: $TS" \
   -H "X-App-Access-Sig: $SIG" \
   -H "X-Agent-Source: sumsub-skills" \
-  -H "X-Agent-Source-Ver: 1.4.1" \
+  -H "X-Agent-Source-Ver: 1.5.0" \
   --data "$BODY" \
   "https://api.sumsub.com${PATH_Q}"
 

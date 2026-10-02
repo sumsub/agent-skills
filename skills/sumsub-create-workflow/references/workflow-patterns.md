@@ -192,6 +192,7 @@ would also swallow `rejected`.
 - **Policy lives in tiered named client lists**, not hardcoded country arrays — e.g.
   per-region `…_low/medium/high_risk_level` and `…_prohibited_and_sanctioned_countries`.
   The graph just references the lists; updating policy = editing the list, not the workflow.
+  Build and populate them with [`sumsub-manage-client-lists`](../../sumsub-manage-client-lists/SKILL.md).
 - **Keep a small, consistent tag taxonomy** reused across segments: risk-level tags,
   process-state flags, entity-class tags.
 - **Gate every sequential level transition through a condition node** — a level's own

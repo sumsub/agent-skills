@@ -1,0 +1,6 @@
+{
+  "title": "Blocked Emails",
+  "type": "blocklist",
+  "entryType": "email",
+  "desc": "Addresses refused at signup"
+}

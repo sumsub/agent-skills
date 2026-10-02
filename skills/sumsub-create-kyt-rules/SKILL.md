@@ -103,9 +103,14 @@ on `POST` — see the `No allowed transaction types found` row in step 6.
    `types`, check that row in [Tenant Entitlements](#tenant-entitlements) and abort if none of
    its keys are present.
 
-   **Skip this step entirely** for work that is not a rule: tags, applicant assessment, risk
-   levels, and client lists need no entitlement. Do not look for an entitlements endpoint other
-   than the one `sumsub-check-permissions` calls — there is no other one.
+   **Skip this step entirely** for work that is not a rule: tags, applicant assessment and risk
+   levels need no entitlement. The `/tm/clientLists` endpoints (step 2a) need `WATCHLISTS` or
+   `WATCHLISTS_FOR_TM` — without either, create the list with
+   [`sumsub-manage-client-lists`](../sumsub-manage-client-lists/SKILL.md), which needs none — except
+   a Sumsub-maintained list, which then can't be installed at all (see
+   [Required permissions](#required-permissions)). Do not
+   look for an entitlements endpoint other than the one `sumsub-check-permissions` calls — there is
+   no other one.
 
 1. **Determine mode — create or modify.**
 
@@ -130,6 +135,14 @@ on `POST` — see the `No allowed transaction types found` row in step 6.
       bash ${CLAUDE_SKILL_DIR}/scripts/create_kyt_client_list.sh <listName>
       ```
     The POST is idempotent — it succeeds even if the list was created in the meantime.
+    For any other name it creates an **empty `custom` list of `key` entries**, and a list's type and entry type
+    can never be changed afterwards. So when the rule needs a list of emails, phones, applicant ids,
+    device ids or IP ranges, or a `blocklist` / `whitelist`, or needs values in it, don't create it
+    here: hand off to [`sumsub-manage-client-lists`](../sumsub-manage-client-lists/SKILL.md), which
+    creates typed lists and populates them. For a **Sumsub-maintained** name
+    (`fatf_black_flag_countries`, `eu_high_risk_third_countries`, … — see that skill's table) the
+    POST installs Sumsub's own read-only list, which is correct: use it rather than building a
+    custom country list.
     **Do not proceed to validation or rule creation** until every referenced client list is confirmed.
 
 3. **Generate `conditionEl`.** For each rule that needs a condition:
@@ -361,6 +374,8 @@ The POST creates an empty list if it doesn't exist and returns the list document
 
 If the GET returns 403, `seeClientLists` is missing. If the POST returns 403, `manageClientLists` is missing. In both cases, tell the user the missing permission and stop.
 
+Both endpoints also require the `WATCHLISTS` or `WATCHLISTS_FOR_TM` entitlement. When the tenant has neither, create the list with [`sumsub-manage-client-lists`](../sumsub-manage-client-lists/SKILL.md) instead — its endpoints need no entitlement. **Except a Sumsub-maintained name** (`fatf_black_flag_countries`, …): only these endpoints can install one, and that skill refuses the reserved name. Tell the user the tenant needs `WATCHLISTS` or `WATCHLISTS_FOR_TM` for that list, and stop — don't hand off, and don't build a copy under another name.
+
 ### Usage in `conditionEl`
 
 Reference a list by its exact name after the `clientLists.` prefix:
@@ -376,7 +391,7 @@ NOT (txn.counterparty.wallet IN clientLists.approved_wallets)
 applicant.country IN clientLists.sanctioned_countries AND data.info.amountInDefaultCurrency > 1000
 ```
 
-List contents are managed separately in the Sumsub dashboard (KYT → Client Lists) — the API endpoints only create an empty list; adding values is a dashboard-only operation.
+The endpoints above only get-or-create an **empty** `custom` list of `key` entries. As step 2a says, a list that needs values (countries, wallets, peer ids, …) or a typed entry is not created here: [`sumsub-manage-client-lists`](../sumsub-manage-client-lists/SKILL.md) creates **and** populates it, via the same `clientLists` entity (shared `seeClientLists`/`manageClientLists` permissions). Resume at step 3 once it reports the list populated.
 
 ## Tags
 
@@ -616,6 +631,7 @@ When this rule matches, the `HighValue` tag is applied to the applicant and its 
 - [`scripts/patch_kyt_risk_level_settings.sh`](scripts/patch_kyt_risk_level_settings.sh) — replace applicant risk level thresholds (min 2, requires `manageKytSettings`)
 - [`scripts/get_kyt_client_list.sh`](scripts/get_kyt_client_list.sh) — check whether a client list exists by name
 - [`scripts/create_kyt_client_list.sh`](scripts/create_kyt_client_list.sh) — create a client list (idempotent)
+- [`sumsub-manage-client-lists`](../sumsub-manage-client-lists/SKILL.md) — create typed client lists, populate their values, check membership
 - [`sumsub-create-transaction`](../sumsub-create-transaction/SKILL.md) — submit test transactions to verify rules
 - [`sumsub-check-permissions`](../sumsub-check-permissions/SKILL.md) — check tenant entitlements
 - [`sumsub-api-auth`](../sumsub-api-auth/SKILL.md) — authentication reference

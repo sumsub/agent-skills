@@ -15,33 +15,35 @@ Source: Sumsub OpenAPI (`components.schemas.ApplicantLevel`).
 | `requiredIdDocs.videoIdent` | boolean | Toggles the video-ident container. Set `videoIdentSettings` alongside if needed. |
 | `crossCheckPresetId` | bsonObjectId | Optional — attach a cross-check preset for image/face deduplication. |
 | `rejectUsaResidents` | boolean | Hard block on US residents. |
-| `ipRestrictionSettings`, `applicantInsightSettings`, `deviceIntelligenceSettings`, `kytSettings`, `watchListCheckSettings`, `agreementSettings`, `checkSourceSettings` | objects | Pass-through; each has its own sub-schema in the OpenAPI spec. |
+| `ipRestrictionSettings`, `applicantInsightSettings`, `deviceIntelligenceSettings`, `kytSettings`, `watchListCheckSettings`, `agreementSettings` | objects | Pass-through; each has its own sub-schema in the OpenAPI spec. |
+| `checkSourceSettings` | object | **Database validation placement** — cross-checks an already-required document docSet (e.g. `IDENTITY`) against a database source. A sibling of `requiredIdDocs`, **not nested inside it**. See *Database / non-document verification* below. |
 
 Server-populated, never send: `id`, `_id`, `clientId`, `key`, `createdAt`, `createdBy`, `modifiedAt`, `created`, `modified`.
 
 ## ApplicantIdDocSet (one entry in `docSets`)
 
-| Field | Type | Notes |
-|---|---|---|
-| `idDocSetType` | enum | The step kind — see *IdDocSetType* below. **Required**. |
-| `types` | string[] | Allowed `IdDocType` values (e.g. `PASSPORT`, `ID_CARD`). Required for identity / selfie / proof-of-residence; ignored for verification-only steps. |
-| `subTypes` | string[] | Optional `IdDocSubType` narrowing. |
+| Field | Type | Notes                                                                                                                                                                                                                                                                                                                                                                                                              |
+|---|---|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `idDocSetType` | enum | The step kind — see *IdDocSetType* below. **Required**.                                                                                                                                                                                                                                                                                                                                                            |
+| `types` | string[] | Allowed `IdDocType` values (e.g. `PASSPORT`, `ID_CARD`). Required for identity / selfie / proof-of-residence; ignored for verification-only steps.                                                                                                                                                                                                                                                                 |
+| `subTypes` | string[] | Optional `IdDocSubType` narrowing.                                                                                                                                                                                                                                                                                                                                                                                 |
 | `videoRequired` | enum | IDENTITY: `disabled` (file upload), `docapture` (live capture) — other values fall through to null in the read-mapper. SELFIE: `disabled`, `enabled`, `photoRequired`, `passiveLiveness` (public); `staticLiveness`, `liveness`, `optional` (non-public / deprecated but accepted on round-trip). **This is the persistent toggle** — backend's `captureParams` block is a derived read-only view, do not send it. |
-| `captureMode` | enum | `manualAndAuto`, `manualOnly`, `seamless` (public); `manualAfterTimeout` (deprecated, still accepted on write — legacy levels may carry it). Sub-option for IDENTITY's `docapture` mode (auto vs manual photo). |
-| `uploaderMode` | enum | `always`, `never`, `fallback`. Sub-option for IDENTITY's `docapture` mode (allow falling back to file upload). |
-| `mode` | enum | `single`, `any`, `all` — how `types` are required. |
-| `nfcVerificationSettings` | object | `{mode: disabled\|optional\|required}` — Mobile SDK only. `required` auto-rejects Web SDK applicants. |
-| `fields` | `ApplicantIdDocSetField[]` | For `APPLICANT_DATA` and `COMPANY.steps[].fields`. Each: `{name, required, prefill, immutableIfPresent}`. |
-| `customFields` | `ApplicantIdDocSetCustomField[]` | `{name, displayName, required, immutableIfPresent}`. |
-| `questionnaireDefId` | string | **Required** for `QUESTIONNAIRE*` types — the questionnaire `id` (slug). The level-skill builder also accepts `questionnaireId` as an alias. Pass the `id` returned by `sumsub-create-questionnaire`. |
-| `poaStepSettingsId` | bsonObjectId | **Required** on `PROOF_OF_RESIDENCE*` types — the server rejects the level with an error if omitted ("PoA preset can't be null"). Attaches a POA preset (`PoaStepSettings`) to govern accepted POA document types, validity windows, POI-as-POA, and cross-validator rules. The level-skill builder accepts `poaPresetId` as a friendlier alias. Pass the `id` returned by `sumsub-create-poa-preset`. |
-| `paymentMethods` | array | **Legacy.** Do not set on new levels — pass `[]` or omit. The active configuration lives in `paymentSourceSettings` below. |
-| `paymentSourceSettings` | object | **Required** for `PAYMENT_METHODS` docSets. Contains `skipOwnershipCheck` (bool), `skipRiskScoreCheck` (bool — cannot both be true), `walletScreeningProvider` (enum), `typeSettings` (per-type config object — see *Payment source type settings* below). The builder always emits this; the API rejects the level without it. |
-| `steps` | `ApplicantIdDocSetStep[]` | For `COMPANY` — see *KYB steps*. |
-| `emailVerificationSettings` / `phoneVerificationSettings` | object | Provider/template selection for verification steps. |
-| `esignSettings` | object | E-sign document configuration. |
-| `restrictCountries` | boolean | Per-step country restriction toggle. |
-| `skipAllowed` | boolean | Whether the applicant can skip this step. |
+| `captureMode` | enum | `manualAndAuto`, `manualOnly`, `seamless` (public); `manualAfterTimeout` (deprecated, still accepted on write — legacy levels may carry it). Sub-option for IDENTITY's `docapture` mode (auto vs manual photo).                                                                                                                                                                                                    |
+| `uploaderMode` | enum | `always`, `never`, `fallback`. Sub-option for IDENTITY's `docapture` mode (allow falling back to file upload).                                                                                                                                                                                                                                                                                                     |
+| `mode` | enum | `single`, `any`, `all` — how `types` are required.                                                                                                                                                                                                                                                                                                                                                                 |
+| `nfcVerificationSettings` | object | `{mode: disabled\|optional\|required}` — Mobile SDK only. `required` auto-rejects Web SDK applicants.                                                                                                                                                                                                                                                                                                              |
+| `fields` | `ApplicantIdDocSetField[]` | For `APPLICANT_DATA` and `COMPANY.steps[].fields`. Each: `{name, required, prefill, immutableIfPresent}`.                                                                                                                                                                                                                                                                                                          |
+| `customFields` | `ApplicantIdDocSetCustomField[]` | `{name, displayName, required, immutableIfPresent}`.                                                                                                                                                                                                                                                                                                                                                               |
+| `questionnaireDefId` | string | **Required** for `QUESTIONNAIRE*` types — the questionnaire `id` (slug). The level-skill builder also accepts `questionnaireId` as an alias. Pass the `id` returned by `sumsub-create-questionnaire`.                                                                                                                                                                                                              |
+| `poaStepSettingsId` | bsonObjectId | **Required** on `PROOF_OF_RESIDENCE*` types — the server rejects the level with an error if omitted ("PoA preset can't be null"). Attaches a POA preset (`PoaStepSettings`) to govern accepted POA document types, validity windows, POI-as-POA, and cross-validator rules. The level-skill builder accepts `poaPresetId` as a friendlier alias. Pass the `id` returned by `sumsub-create-poa-preset`.             |
+| `paymentMethods` | array | **Legacy.** Do not set on new levels — pass `[]` or omit. The active configuration lives in `paymentSourceSettings` below.                                                                                                                                                                                                                                                                                         |
+| `paymentSourceSettings` | object | **Required** for `PAYMENT_METHODS` docSets. Contains `skipOwnershipCheck` (bool), `skipRiskScoreCheck` (bool — cannot both be true), `walletScreeningProvider` (enum), `typeSettings` (per-type config object — see *Payment source type settings* below). The builder always emits this; the API rejects the level without it.                                                                                    |
+| `steps` | `ApplicantIdDocSetStep[]` | For `COMPANY` — see *KYB steps*.                                                                                                                                                                                                                                                                                                                                                                                   |
+| `emailVerificationSettings` / `phoneVerificationSettings` | object | Provider/template selection for verification steps.                                                                                                                                                                                                                                                                                                                                                                |
+| `esignSettings` | object | E-sign document configuration.                                                                                                                                                                                                                                                                                                                                                                                     |
+| `checkSourceSettings` | object | **Non-document placement.** Required on standalone `E_KYC` docSets (the builder rejects an `E_KYC` step with no source — nothing to verify against). Optional on `IDENTITY(2/3/4)` — nests the source alongside `types`, so the applicant can upload a document **or** pass the database check in the same step. See *Database / non-document verification* below.                                             |
+| `restrictCountries` | boolean | Per-step country restriction toggle.                                                                                                                                                                                                                                                                                                                                                                               |
+| `skipAllowed` | boolean | Whether the applicant can skip this step.                                                                                                                                                                                                                                                                                                                                                                          |
 
 ## IdDocSetType (enum — all valid `type` values)
 
@@ -104,6 +106,57 @@ Each key in `typeSettings` enables a payment source category. Omit a key entirel
 
 `"crystal"` / `"merkle"` / `"trmLabs"` / `"chainalysis"` / `"elliptic"` / `"cyvers"`
 
+## Database / non-document verification (`checkSourceSettings`)
+
+Source(s) are resolved via [`sumsub-check-databases`](../../sumsub-check-databases/SKILL.md), which reports `validationReady` / `stepsReady` per source — those two fields decide **where** `checkSourceSettings` goes:
+
+| Placement | Where it lives | docSet shape |
+|---|---|---|
+| Database validation (`validationReady: true`) | **Level top level**, a sibling of `requiredIdDocs` | Document docSet (e.g. `IDENTITY`) keeps its `types` unchanged. |
+| Non-doc in an existing step (`stepsReady` alongside a required doc step, e.g. `IDENTITY`) | **Nested inside that docSet** | `types` stays — applicant uploads a document **or** passes the database check. |
+| Non-doc, standalone (`stepsReady` on its own, e.g. `E_KYC`) | **Nested inside a dedicated `E_KYC` docSet** | No `types` — database-only, no upload. The level-skill builder **requires** `checkSourceSettings` on `E_KYC`. |
+
+Shape (identical in both placements):
+
+| Field | Type | Notes |
+|---|---|---|
+| `countrySettings` | `CheckSourceCountrySettings[]` | **Required**, non-empty. One entry per country this source config applies to. |
+
+**`CheckSourceCountrySettings`** (one entry in `countrySettings`)
+
+| Field | Type | Notes |
+|---|---|---|
+| `country` | string | ISO alpha-3 (e.g. `ARG`). **Required**. From the `sumsub-check-databases` response. |
+| `checkType` | enum `BackgroundCheckType` | e.g. `E_KYC_CHECK`, `PERSON`, `TIN` — from the `sumsub-check-databases` response. Set explicitly in the top-level (database-validation) placement; observed omitted in the nested (non-doc) placement. |
+| `groupType` | enum | `INPUT_COUNTRY` — **default**, the applicant's declared country. `TARGET_COUNTRY` — rare cross-border sources (e.g. a visa check). |
+| `executionConfigurations` | `CheckSourceExecutionConfig[]` | **Required**, non-empty. Ordered — sources are tried in sequence. |
+
+**`CheckSourceExecutionConfig`** (one entry in `executionConfigurations`)
+
+| Field | Type | Notes |
+|---|---|---|
+| `sourceId` | string | **Required**. From the `sumsub-check-databases` response (e.g. `arg_gov_dni`). |
+| `fallbackReasons` | enum[] `BackgroundCheckViolation` | Reasons that trigger falling through to the next `sourceId` in the list (e.g. `NAME_MISMATCH`, `DATA_NOT_FOUND`, `DOB_MISMATCH`, `INVALID_DOC_NUMBER`, `FAILED`, `DEAD`). Omit or pass `[]` for no fallback. |
+
+```json
+{
+  "countrySettings": [
+    {
+      "country": "ARG",
+      "checkType": "E_KYC_CHECK",
+      "groupType": "INPUT_COUNTRY",
+      "executionConfigurations": [
+        {"sourceId": "arg_gov_dni", "fallbackReasons": []}
+      ]
+    }
+  ]
+}
+```
+
+Non-doc identity (`E_KYC`, or `IDENTITY` nested) also needs the `E_KYC_TARGET` entitlement — gate via `sumsub-check-permissions`.
+
+See the three placements worked end-to-end in `examples/identity-selfie-with-database-validation.json`, `examples/identity-with-non-doc-selfie.json`, and `examples/non-doc.json`.
+
 ## KYB steps (`COMPANY.steps[]`)
 
 Each step represents a sub-flow inside the KYB. Typical step names:
@@ -120,6 +173,8 @@ Each step accepts `{name, minDocsCnt, applicantLevelName, idDocTypes, idDocSubTy
 - **Name collisions** — Sumsub fails with 400 if `name` already exists for the client. Pick a unique one.
 - **QUESTIONNAIRE without `questionnaireDefId`** — silent fail in the dashboard later. The builder rejects this upfront.
 - **`PROOF_OF_RESIDENCE*` without `poaStepSettingsId`** — the server rejects the level ("PoA preset can't be null"). This field is enforced in practice even though it may appear optional. Always create a POA preset first (`sumsub-create-poa-preset`) and pass its `id` before POSTing the level.
+- **`E_KYC` without `checkSourceSettings`** — the builder rejects this upfront (mirrors the QUESTIONNAIRE/PROOF_OF_RESIDENCE rule above): a standalone non-doc step with no source has nothing to verify the applicant against. Resolve a source via `sumsub-check-databases` first.
+- **`checkSourceSettings` nested under `requiredIdDocs` is wrong** — it's a **level top-level field** (a sibling of `requiredIdDocs`) for the database-validation placement, or a **per-docSet field** (inside e.g. `IDENTITY`/`E_KYC`) for the non-doc placement. It is never nested one level inside `requiredIdDocs` itself.
 - **Duplicate `idDocSetType` in the same level** — Sumsub will reject. Use `IDENTITY` / `IDENTITY2` if you really need two identity captures.
 - **`applicantType: company` + non-COMPANY docSets** — allowed but odd; the WebSDK skips KYB-specific UI.
 - **`crossCheckPresetId`** must be an existing preset (create one via `sumsub-create-cross-check-preset`, or omit and Sumsub auto-applies the tenant default).

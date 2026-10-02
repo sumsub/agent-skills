@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/anthropics/skills/main/schema/skills.json",
   "name": "@sumsub/agent-skills",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "skills": [
     {
       "name": "sumsub-api-auth",
@@ -82,6 +82,12 @@
       "description": "Fetch the current tenant's allowed entitlements (BackgroundCheckTarget list). Returns JSON `{\"allowedChecks\": {key: label}}` — a map whose keys are the enabled entitlement keys. Called by create-* skills before building a payload to gate entitlement-required features."
     },
     {
+      "name": "sumsub-check-databases",
+      "path": "./skills/sumsub-check-databases",
+      "entry": "SKILL.md",
+      "description": "Discover the Databases (check-sources) Sumsub offers for a country, whether each is enabled for the tenant, and how database / non-document (eKYC) verification fits into a level. Use when a user asks which database check-sources a country offers or how to add database validation / non-doc identity / non-doc address verification. Also called by sumsub-create-level to gate and place those sources."
+    },
+    {
       "name": "sumsub-check-skills-version",
       "path": "./skills/sumsub-check-skills-version",
       "entry": "SKILL.md",
@@ -152,6 +158,12 @@
       "path": "./skills/sumsub-manage-wallet-address-book",
       "entry": "SKILL.md",
       "description": "Register the crypto wallet addresses an organisation controls so Travel Rule ownership resolves without a human. Bulk import via POST /resources/kyt/walletAddress/import (max 10000 per call), or bind one address to an applicant via POST /resources/api/applicants/{applicantId}/payments."
+    },
+    {
+      "name": "sumsub-manage-client-lists",
+      "path": "./skills/sumsub-manage-client-lists",
+      "entry": "SKILL.md",
+      "description": "Create and populate Sumsub client lists — the named key sets that workflow conditions and KYT rules match against. Country risk lists, blocklists of emails / devices / IP ranges, membership checks, un-blocklisting an applicant."
     },
     {
       "name": "sumsub-resolve-currency",

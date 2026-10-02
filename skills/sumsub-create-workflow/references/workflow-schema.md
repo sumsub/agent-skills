@@ -162,7 +162,7 @@ The authoritative inventory of every legal `exp` path is **[`workflow-expression
 | `applicant.review.rejectLabels` | AML/check result labels — `contains PEP`, `containsAny [SANCTIONS, ADVERSE_MEDIA]`. The canonical post-AML branch. |
 | `applicant.review.reviewAnswer` | `GREEN` / `RED` overall answer. |
 | `applicant.tags` | Tags set upstream by `actions` nodes — route with `contains` / `containsAny` (tag-as-state-machine). |
-| `clientLists.<name>` | A **tenant-defined named list** (dashboard-maintained). Used as the **RHS** of `in` / `notIn` / `containsAny`: `poi.country in clientLists.high_risk_countries_list`. Not creatable via this skill; an unknown name validates as `invalidExpression`. |
+| `clientLists.<name>` | A **tenant-defined named list**. Used as the **RHS** of `in` / `notIn` / `containsAny`: `poi.country in clientLists.high_risk_countries_list`. Not creatable via this skill — create and populate it with [`sumsub-manage-client-lists`](../../sumsub-manage-client-lists/SKILL.md); an unknown name validates as `invalidExpression`. |
 | `random` | Random-bucket A/B sampling. |
 
 Paths absent from `workflow-expressions.md` resolve to "empty" at runtime — wrap unverified paths with `notEmpty` so the edge fails closed.

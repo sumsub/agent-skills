@@ -47,8 +47,8 @@ otherwise ask once before running. Never echo the secret back.
 
 0. **Fetch tenant entitlements.** Invoke the `sumsub-check-permissions` skill and parse the JSON result. Store the `allowedChecks` map (its keys are the enabled entitlements); use it for all feature-gate checks in step 2 and the entitlements section below. Do this before anything else.
 1. **Check existing entities.** Before building anything, list existing levels, POA presets, and questionnaires (GET the respective list endpoints). If a matching entity already exists, offer to reuse its `id` and skip the POST — the server creates a duplicate on every POST with no name deduplication.
-2. **Translate the user's request to the compact spec** below — name, applicant type, and a list of doc-set steps in the order they should appear in the WebSDK flow.
-3. **Validate** — confirm every `type` is a real `IdDocSetType`, every `QUESTIONNAIRE` step has a `questionnaireDefId` that points to an existing questionnaire, every `PROOF_OF_RESIDENCE*` step has a `poaPresetId` / `poaStepSettingsId` (the server rejects the level if it's missing — run `sumsub-create-poa-preset` first if no preset exists), every `COMPANY` step has at least one named sub-step. Use the `allowedChecks` keys from step 0 to reject any entitlement-gated feature not present in it.
+2. **Translate the user's request to the compact spec** below — name, applicant type, and a list of doc-set steps in the order they should appear in the WebSDK flow. If the request implies database / non-document verification, resolve sources via `sumsub-check-databases` first (see [Database / non-document verification](#database--non-document-verification-kyc)).
+3. **Validate** — confirm every `type` is a real `IdDocSetType`, every `QUESTIONNAIRE` step has a `questionnaireDefId` that points to an existing questionnaire, every `PROOF_OF_RESIDENCE*` step has a `poaPresetId` / `poaStepSettingsId` (the server rejects the level if it's missing — run `sumsub-create-poa-preset` first if no preset exists), every `COMPANY` step has at least one named sub-step. Use the `allowedChecks` keys from step 0 to reject any entitlement-gated feature not present among them.
 4. **Generate payload** — run `${CLAUDE_SKILL_DIR}/scripts/build_level.py` with the spec on stdin → full payload on stdout.
 5. **Show the resolved payload to the user and ask for explicit confirmation** before the first POST.
 6. **Create vs. update**:
@@ -255,6 +255,48 @@ Pick the mode from how the user frames it — "add card/wallet verification to m
 
 See [`examples/payment-methods.json`](examples/payment-methods.json) for a complete action-mode spec.
 
+### Database / non-document verification (KYC)
+
+**Scope: KYC (individual) only.** Company/KYB database checks are not covered via this path.
+
+When the request implies checking applicant data against a **database / registry** rather than (or in addition to) a document — signals: "non-doc", "eKYC", "no document", "against a database/registry", "validate the ID / SSN / DNI number" — resolve and place sources via [`sumsub-check-databases`](../sumsub-check-databases/SKILL.md) **before** building the payload:
+
+1. Run `sumsub-check-databases <country>`. A source is usable when `status == "ENABLED"`; `SANDBOX_ONLY` works in sandbox but will not run in production (say so before building a level the user intends to go live with), and `DISABLED` is not usable at all. If the source the user needs is unavailable, follow that skill's fallback + enablement guidance (don't silently drop it — point the user at [Databases → Available products](https://cockpit.sumsub.com/checkus/sdkIntegrations/databaseServices/available), self-serve for most sources).
+2. Each source's `validationReady` / `stepsReady` decides the **placement** — the two signals are independent, check both:
+
+| Signal | docSet | Notes |
+|---|---|---|
+| `validationReady: true` | keep the document docSet (e.g. `IDENTITY`, `types` stays) | Source cross-checks the uploaded document's data against the database. Attach at the level's **top-level** `checkSourceSettings` (a sibling of `requiredIdDocs`, not nested inside it or inside the docSet). |
+| `stepsReady` contains a type **on its own** (e.g. `E_KYC`) | standalone docSet of that type, no `types` field | Database-only, no upload. `E_KYC` requires `E_KYC_TARGET`. Nest `checkSourceSettings` **inside this docSet**. |
+| `stepsReady` contains a type **alongside** an already-required doc step (e.g. `IDENTITY`) | keep that docSet's `types` | Applicant chooses document upload **or** the database check in the same step. Also requires `E_KYC_TARGET`. Nest `checkSourceSettings` **inside that same docSet**, not at the top level. |
+
+If `stepsReady` lists more than one step type for a source, that's a menu of valid homes, not a mandate to use all of them — pick the one that matches the user's intent.
+
+3. Attach the chosen source(s) via `checkSourceSettings.countrySettings[]` — **either** at the level's top level (a `checkSourceSettings` key sibling to `requiredIdDocs`, for `validationReady` placements) **or** nested inside the relevant docSet (for `stepsReady` placements):
+
+```json
+"checkSourceSettings": {
+  "countrySettings": [
+    {
+      "country": "ARG",
+      "checkType": "E_KYC_CHECK",
+      "groupType": "INPUT_COUNTRY",
+      "executionConfigurations": [
+        {"sourceId": "arg_gov_dni", "fallbackReasons": []}
+      ]
+    }
+  ]
+}
+```
+
+- `country`, `checkType`, and `sourceId` come straight from the check-databases response.
+- `groupType`: use `INPUT_COUNTRY` (the applicant's country) — the default. `TARGET_COUNTRY` is only for the rare cross-border source (e.g. a visa check).
+- `executionConfigurations` is **ordered** — list multiple `sourceId`s to fall back in sequence. `fallbackReasons` (e.g. `NAME_MISMATCH`, `DATA_NOT_FOUND`) triggers the fallback to the next source; `[]` = no fallback.
+
+See the three placements worked end-to-end in [`examples/identity-selfie-with-database-validation.json`](examples/identity-selfie-with-database-validation.json) (top-level, `validationReady`), [`examples/identity-with-non-doc-selfie.json`](examples/identity-with-non-doc-selfie.json) (nested in `IDENTITY`), and [`examples/non-doc.json`](examples/non-doc.json) (standalone `E_KYC`).
+
+Field meanings, enum values, and the unavailable-source handling live in [`sumsub-check-databases`](../sumsub-check-databases/SKILL.md) + its [schema reference](../sumsub-check-databases/references/checksources-schema.md).
+
 ### Chaining with other Sumsub-* skills
 
 This skill's `QUESTIONNAIRE` and `PROOF_OF_RESIDENCE` doc-sets accept ids produced by sibling skills, so a 3-step build-everything-from-scratch flow is natural:
@@ -265,6 +307,8 @@ This skill's `QUESTIONNAIRE` and `PROOF_OF_RESIDENCE` doc-sets accept ids produc
 | `sumsub-create-poa-preset` | `docSets[].poaPresetId` on a `PROOF_OF_RESIDENCE` doc-set |
 
 See [`examples/with-presets.json`](examples/with-presets.json) for an end-to-end level that references both.
+
+For **database / non-document** verification, run [`sumsub-check-databases`](../sumsub-check-databases/SKILL.md) to resolve sources and attach them via `checkSourceSettings` — see [Database / non-document verification](#database--non-document-verification-kyc) above.
 
 ## Outputs
 
@@ -284,6 +328,9 @@ On failure: HTTP status + the `description`/`errorName` from Sumsub's error enve
 - [`examples/kyb-company.json`](examples/kyb-company.json) — KYB level with company + UBOs + representatives steps.
 - [`examples/with-presets.json`](examples/with-presets.json) — references both a questionnaire (`questionnaireDefId`) and a POA preset (`poaPresetId`) returned by sibling skills.
 - [`examples/payment-methods.json`](examples/payment-methods.json) — payment method action level with bank card, bank account, crypto wallet, and e-wallet.
+- [`examples/identity-selfie-with-database-validation.json`](examples/identity-selfie-with-database-validation.json) — database validation (`validationReady`): document upload stays, source cross-checks it via top-level `checkSourceSettings`.
+- [`examples/identity-with-non-doc-selfie.json`](examples/identity-with-non-doc-selfie.json) — non-doc in an existing step (`stepsReady`): `checkSourceSettings` nested inside `IDENTITY`, applicant can upload or use the database check.
+- [`examples/non-doc.json`](examples/non-doc.json) — standalone non-doc (`stepsReady`): dedicated `E_KYC` docSet, no document upload.
 
 ## See also
 

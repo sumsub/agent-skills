@@ -9,6 +9,26 @@ user-invocable: false
 
 Returns the tenant's allowed entitlements so callers can gate features before making any API writes.
 
+## Auth — App Token + secret (sandbox only)
+
+This skill talks to the public Sumsub API and signs each request per
+[the authentication reference](https://docs.sumsub.com/reference/authentication).
+The full how-it-works writeup lives in the [`sumsub-api-auth`](../sumsub-api-auth/SKILL.md)
+skill — read it if you hit `401 Invalid signature`.
+
+> **⚠️ Sandbox tokens only.** Do **not** accept or use a production App Token
+> here. If the user offers one, refuse and ask them to generate a sandbox
+> pair at <https://cockpit.sumsub.com/checkus/devSpace/appTokens> (toggle
+> the workspace to **Sandbox** first, then **Create**). Token + secret are
+> shown once — copy both before closing the dialog. The helper script
+> enforces this — it rejects tokens that don't start with `sbx:`.
+
+| Var | Example |
+|---|---|
+| `SUMSUB_APP_TOKEN` | `sbx:...` — sandbox App Token from the dashboard. |
+| `SUMSUB_SECRET_KEY` | The paired secret shown once at token creation. |
+| `SUMSUB_BASE` | Optional. Defaults to `https://api.sumsub.com`. |
+
 ## Usage
 
 Run the script and parse the result:

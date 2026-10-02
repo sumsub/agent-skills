@@ -1,0 +1,40 @@
+{
+  "name": "Non-doc (example)",
+  "applicantType": "individual",
+  "type": "standalone",
+  "docSets": [
+    {
+      "type": "E_KYC",
+      "checkSourceSettings": {
+        "countrySettings": [
+          {
+            "country": "NGA",
+            "groupType": "INPUT_COUNTRY",
+            "executionConfigurations": [
+              {"sourceId": "nga_gov_bvn"},
+              {"sourceId": "nga_gov_nin"}
+            ]
+          },
+          {
+            "country": "BRA",
+            "groupType": "INPUT_COUNTRY",
+            "executionConfigurations": [
+              {"sourceId": "bra_gov_cpf"}
+            ]
+          },
+          {
+            "country": "ZAF",
+            "groupType": "INPUT_COUNTRY",
+            "executionConfigurations": [
+              {"sourceId": "zaf_gov_id_cache"}
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "type": "SELFIE",
+      "videoRequired": "passiveLiveness"
+    }
+  ]
+}

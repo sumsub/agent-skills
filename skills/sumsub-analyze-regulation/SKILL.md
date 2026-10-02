@@ -175,23 +175,21 @@ Configured via `sumsub-create-level` once activated.
 
 **Two configuration modes:**
 1. **Standalone `E_KYC` docSet** — electronic verification only; applicant cannot upload documents instead
-2. **`IDENTITY` with `ekycAllowed: true`** — applicant chooses: upload document photo OR complete E-KYC
-
-**Available database types:** `GOVERNMENT` (national registries), `CREDIT` (credit bureaus), `TELCO` (telecom providers), `BANKING`, `COMMERCIAL` (business registries), `CONSUMER`, `UTILITY`, `POSTAL`, `PROPRIETARY`.
-
-**Verification methods:** `ENRICHMENT`, `ONE_X_ONE_MATCHING`, `TWO_X_TWO_MATCHING`, `VALIDITY_CHECK`.
+2. **`IDENTITY` docSet with the database source's `checkSourceSettings` nested inside it** — applicant chooses: upload document photo OR complete E-KYC in the same step
 
 **Configuration rules:**
-- Country coverage depends entirely on client's license activations — there is no universal list
+- Country and source coverage depends entirely on client's license activations — there is no universal list. **Which sources are actually available and enabled for a given country is resolved at build time by [`sumsub-check-databases`](../sumsub-check-databases/SKILL.md)** (called by `sumsub-create-level`), which also reports each source's placement (top-level database validation vs. standalone/nested non-doc step) — don't assume coverage or placement in the plan.
 - Recommended to pair with a `SELFIE` step for biometric verification against database records
 
-**Activation steps:** (1) contact CSM to request per-country activation, (2) run `sumsub-create-level`.
+**Activation steps:** (1) contact CSM to request per-country activation, (2) run `sumsub-create-level` — it uses `sumsub-check-databases` to confirm the country's sources and place them (top-level database validation, standalone `E_KYC`, or nested inside `IDENTITY`).
 
 ### E. Transaction Monitoring — `sumsub-create-kyt-rules`
 
 **⚠️ Requires `KYT` license** (and `TRAVEL_RULE` for crypto, `TM_SCHEDULED_EVENTS` for periodic re-KYC, `KYT_ANTI_FRAUD` for platform events).
 
 Describes what to configure at plan time in plain language. `sumsub-create-kyt-rules` translates each rule into a `conditionEl` SumScript expression and POSTs it to the API. New rules always start in test mode (`dryRun: true`) — activating them requires the dashboard.
+
+Rules that match against a named set (`clientLists.<name>` — high-risk countries, blocked emails, peer allowlists) need that list built and populated first with `sumsub-manage-client-lists`. Check its Sumsub-maintained lists (`fatf_black_flag_countries`, `eu_high_risk_third_countries`, …) before planning a hand-built copy.
 
 **Transaction types:**
 - `finance` — financial transactions (fiat and crypto)
@@ -263,7 +261,7 @@ Covers: finance transactions, Travel Rule (crypto counterparty data), platform e
 | PEP self-declaration | `QUESTIONNAIRE` + AML `watchListCheckSettings` | `sumsub-create-questionnaire` + `sumsub-create-level` |
 | Enhanced Due Diligence (EDD) | Separate EDD level + extended questionnaire | `sumsub-create-level` + `sumsub-create-questionnaire` |
 | PoA document age limit | PoA preset `maxMonths` per category | `sumsub-create-poa-preset` |
-| Electronic / non-document verification | `E_KYC` docSet | `sumsub-create-level` *(CSM activation required)* |
+| Electronic / non-document verification | `E_KYC` docSet, standalone or nested inside `IDENTITY` | `sumsub-create-level` + `sumsub-check-databases` *(CSM activation; per-country availability)* |
 | KYB — company verification | `COMPANY` / `COMPANY_DATA` / `COMPANY_BENEFICIARIES` | `sumsub-create-level` |
 | Risk-based routing (standard vs EDD) | Workflow with `exclusiveChoice` | `sumsub-create-workflow` |
 | Auto-review of AML screening hits (false-positive clearing, PEP rules) | AML Resolution Rule Chain | `sumsub-create-aml-resolution-rules` |
@@ -376,7 +374,8 @@ Produce the plan as a structured markdown document with two clearly separated se
 - `action`: `score [N]` | `onHold` | `awaitUser` | `reject`
 - Case creation: yes | no — [group by applicant / by rule]
 - Regulation reference: Art. N
-→ Next: `sumsub-create-kyt-rules`
+- Client lists referenced: [`clientLists.<name>` — contents, or the Sumsub-maintained list it points at] _(omit if none)_
+→ Next: `sumsub-manage-client-lists` (for each list to build) → `sumsub-create-kyt-rules`
 
 #### Periodic Re-KYC rule [if applicable — requires `TM_SCHEDULED_EVENTS` license]
 - Trigger: customers at level [X] after [N] days
@@ -391,8 +390,8 @@ Produce the plan as a structured markdown document with two clearly separated se
 ### Activate TM rules
 New rules are created in test mode (`dryRun: true`). To make them live: open each rule in the dashboard (KYT → Rules Manager) and set it to **Active**.
 
-### KYT Client Lists
-Adding values to client lists referenced in rule conditions (e.g., country blocklists, peer allowlists) is a dashboard-only operation: KYT → Client Lists.
+### Bulk client-list import
+Client lists referenced in rule conditions are created and populated with `sumsub-manage-client-lists`, but values are added one at a time (300 per hour). A list of more than a few dozen entries is loaded as a CSV import in the dashboard.
 
 ---
 
@@ -400,11 +399,11 @@ Adding values to client lists referenced in rule conditions (e.g., country block
 [Include only if applicable to the jurisdiction]
 
 - Jurisdiction: [country]
-- Potentially available databases: GOVERNMENT | CREDIT | BANKING
 - Configuration path: `sumsub-create-level` — after CSM activation
+- Availability check: `sumsub-check-databases` resolves which sources [country] actually offers, whether they're enabled, and each source's placement (top-level validation vs. standalone/nested non-doc step)
 - Activation steps:
   1. Contact your Sumsub CSM to request activation for [country]
-  2. Run `sumsub-create-level` with the `E_KYC` docSet
+  2. Run `sumsub-create-level` with the `E_KYC` docSet (standalone, or nested inside `IDENTITY`) — per-country sources and placement confirmed via `sumsub-check-databases`
 
 ---
 
@@ -451,6 +450,7 @@ Adding values to client lists referenced in rule conditions (e.g., country block
 | Skill | When to invoke |
 |---|---|
 | `sumsub-create-level` | Always — core output of every regulation analysis |
+| `sumsub-check-databases` | Regulation implies non-document / database verification — resolves per-country source availability at build time (called by `sumsub-create-level`) |
 | `sumsub-create-questionnaire` | Regulation requires SOF, PEP, wealth, employment, or risk profile collection |
 | `sumsub-create-poa-preset` | Regulation requires address verification |
 | `sumsub-create-workflow` | Regulation requires risk-based routing, EDD flow, or multi-stage onboarding |

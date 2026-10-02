@@ -1,0 +1,43 @@
+{
+  "name": "Basic KYC with Non-Doc alternative (example)",
+  "applicantType": "individual",
+  "type": "standalone",
+  "websdkNext": true,
+  "docSets": [
+    {
+      "type": "IDENTITY",
+      "docTypes": ["PASSPORT", "DRIVERS", "ID_CARD", "RESIDENCE_PERMIT"],
+      "videoRequired": "disabled",
+      "checkSourceSettings": {
+        "countrySettings": [
+          {
+            "country": "ARG",
+            "groupType": "INPUT_COUNTRY",
+            "executionConfigurations": [
+              {"sourceId": "arg_gov_dni"}
+            ]
+          },
+          {
+            "country": "ZAF",
+            "groupType": "INPUT_COUNTRY",
+            "executionConfigurations": [
+              {"sourceId": "zaf_gov_id_cache"}
+            ]
+          },
+          {
+            "country": "NGA",
+            "groupType": "INPUT_COUNTRY",
+            "executionConfigurations": [
+              {"sourceId": "nga_gov_bvn"},
+              {"sourceId": "nga_gov_nin"}
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "type": "SELFIE",
+      "videoRequired": "passiveLiveness"
+    }
+  ]
+}

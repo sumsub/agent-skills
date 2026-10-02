@@ -68,7 +68,7 @@ sumsub_request() {
     -H "X-App-Access-Ts: ${ts}"
     -H "X-App-Access-Sig: ${sig}"
     -H "X-Agent-Source: sumsub-skills"
-    -H "X-Agent-Source-Ver: 1.4.1"
+    -H "X-Agent-Source-Ver: 1.5.0"
     -H "Accept: application/json"
   )
   if [[ -n "${body_file}" ]]; then

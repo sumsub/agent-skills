@@ -1,6 +1,6 @@
 {
   "name": "@sumsub/agent-skills",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "description": "Agent Skills for the Sumsub API — applicant levels, questionnaires, PoA presets, workflows, transaction monitoring, WebSDK integration, and regulation analysis.",
   "keywords": [
     "skill",
@@ -37,9 +37,11 @@
       "./skills/sumsub-analyze-regulation",
       "./skills/sumsub-api-auth",
       "./skills/sumsub-api-generic",
+      "./skills/sumsub-check-databases",
       "./skills/sumsub-check-permissions",
       "./skills/sumsub-check-skills-version",
       "./skills/sumsub-conformance",
+      "./skills/sumsub-create-aml-resolution-rules",
       "./skills/sumsub-create-cross-check-preset",
       "./skills/sumsub-create-kyt-rules",
       "./skills/sumsub-create-level",
@@ -51,8 +53,14 @@
       "./skills/sumsub-integrate-dint-websdk",
       "./skills/sumsub-integrate-id-connect",
       "./skills/sumsub-integrate-msdk",
+      "./skills/sumsub-integrate-travel-rule",
       "./skills/sumsub-integrate-websdk",
+      "./skills/sumsub-manage-applicant-tags",
+      "./skills/sumsub-manage-client-lists",
+      "./skills/sumsub-manage-wallet-address-book",
       "./skills/sumsub-manage-webhooks",
+      "./skills/sumsub-resolve-currency",
+      "./skills/sumsub-supported-id-documents",
       "./skills/sumsub-theme-msdk"
     ]
   }

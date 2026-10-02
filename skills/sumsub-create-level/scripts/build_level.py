@@ -79,6 +79,26 @@ def _field_obj(f):
     raise ValueError(f"field must be a string or object with 'name': {f!r}")
 
 
+def _validate_check_source_settings(css, where):
+    """Structural check for a checkSourceSettings block — resolved via
+    sumsub-check-databases and attached either at level top level
+    (validationReady placement) or nested inside a docSet (stepsReady
+    placement). Shape: {countrySettings: [{country, executionConfigurations:
+    [{sourceId, ...}], ...}]}."""
+    if not isinstance(css, dict) or not isinstance(css.get("countrySettings"), list) or not css["countrySettings"]:
+        raise ValueError(f"{where}: checkSourceSettings must be an object with a non-empty 'countrySettings' list")
+    for entry in css["countrySettings"]:
+        if not isinstance(entry, dict) or not entry.get("country"):
+            raise ValueError(f"{where}: each checkSourceSettings.countrySettings entry needs a 'country'")
+        exec_cfgs = entry.get("executionConfigurations")
+        if not isinstance(exec_cfgs, list) or not exec_cfgs:
+            raise ValueError(f"{where}: checkSourceSettings.countrySettings[{entry['country']!r}] needs a non-empty 'executionConfigurations' list")
+        for cfg in exec_cfgs:
+            if not isinstance(cfg, dict) or not cfg.get("sourceId"):
+                raise ValueError(f"{where}: each executionConfigurations entry needs a 'sourceId'")
+    return css
+
+
 def _build_identity(spec):
     """IDENTITY(2/3/4) doc-set. See SKILL.md "Dashboard ↔ API mapping" for the
     label-to-value table. Defaults match the dashboard's Vue watcher in
@@ -121,6 +141,14 @@ def _build_identity(spec):
         if mode not in NFC_MODES:
             raise ValueError(f"IDENTITY nfcVerificationSettings.mode must be one of {sorted(NFC_MODES)}; got {mode!r}")
     out["nfcVerificationSettings"] = nfc_settings
+
+    # Non-doc-in-identity-step placement (source's stepsReady contains IDENTITY,
+    # resolved via sumsub-check-databases) — applicant can upload a document OR
+    # pass the database check, both live on this same docSet. `types` above is
+    # untouched, so upload stays available.
+    css = spec.get("checkSourceSettings")
+    if css is not None:
+        out["checkSourceSettings"] = _validate_check_source_settings(css, spec["type"])
 
     return out
 
@@ -290,6 +318,25 @@ def _build_bare(spec):
     return {"idDocSetType": spec["type"]}
 
 
+def _build_ekyc(spec):
+    """E_KYC doc-set — standalone non-document identity verification (source's
+    stepsReady contains E_KYC on its own, resolved via sumsub-check-databases).
+    No document upload, so unlike IDENTITY there's no 'types' — the applicant
+    supplies whatever requiredInputFields the check-source(s) need instead.
+    checkSourceSettings is required: an E_KYC step with no source configured
+    has nothing to verify the applicant against."""
+    css = spec.get("checkSourceSettings")
+    if css is None:
+        raise ValueError(
+            f"{spec['type']} requires checkSourceSettings — resolve a non-doc source via "
+            "sumsub-check-databases and attach it here"
+        )
+    return {
+        "idDocSetType": spec["type"],
+        "checkSourceSettings": _validate_check_source_settings(css, spec["type"]),
+    }
+
+
 BUILDERS = {
     "IDENTITY": _build_identity, "IDENTITY2": _build_identity,
     "IDENTITY3": _build_identity, "IDENTITY4": _build_identity,
@@ -300,6 +347,7 @@ BUILDERS = {
     "APPLICANT_DATA": _build_applicant_data,
     "PAYMENT_METHODS": _build_payment,
     "COMPANY": _build_company,
+    "E_KYC": _build_ekyc,
 }
 
 
@@ -397,10 +445,15 @@ def build_level(spec):
         "ipRestrictionSettings", "applicantInsightSettings",
         "deviceIntelligenceSettings", "kytSettings", "watchListCheckSettings",
         "useCustomWatchListCheckSettings", "disableWatchlists",
-        "agreementSettings", "checkSourceSettings",
+        "agreementSettings",
     ):
         if spec.get(k) is not None:
             payload[k] = spec[k]
+    # Database-validation placement (source's validationReady is true, resolved
+    # via sumsub-check-databases) — a level-wide sibling of `requiredIdDocs`,
+    # NOT nested inside it. Cross-checks a document docSet that's still required.
+    if spec.get("checkSourceSettings") is not None:
+        payload["checkSourceSettings"] = _validate_check_source_settings(spec["checkSourceSettings"], "level")
     # WebSDK 2.0 is mandatory for NEW levels: default websdkNext to true on create
     # (no id in the spec) so a forgetful caller never ships a legacy WebSDK 1.0
     # level. On UPDATE (id present) leave it untouched — upgrading an existing

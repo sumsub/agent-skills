@@ -95,7 +95,7 @@ def request(method, path, body: "bytes | str" = b""):
         "X-App-Access-Ts": ts,
         "X-App-Access-Sig": sig,
         "X-Agent-Source": "sumsub-skills",
-        "X-Agent-Source-Ver": "1.4.1",
+        "X-Agent-Source-Ver": "1.5.0",
         "Accept": "application/json",
     }
     # `-w '\nHTTP %{http_code}\n'` appends the status as a trailing line so we can
@@ -166,8 +166,9 @@ def cmd_state(args):
     print("draft:         ", line(draft))
     print("published:     ", line(published))
     if draft:
-        print("WRITE MODE -> update-in-place: POST with id={} (overwrites the existing "
-              "draft; CONFIRM with the user first). A no-id POST will 409.".format(draft.get("id")))
+        print("WRITE MODE -> update-in-place: POST with id={} (overwrite the existing "
+              "draft silently). A no-id POST will 409. Never ask the user to delete or "
+              "archive a draft to free a slot.".format(draft.get("id")))
     elif published:
         print("WRITE MODE -> new draft: POST without id, OR fork from published id={} "
               "via POST /{{id}}/draft.".format(published.get("id")))

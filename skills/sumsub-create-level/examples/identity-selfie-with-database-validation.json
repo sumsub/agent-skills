@@ -1,0 +1,28 @@
+{
+  "name": "Basic KYC with database validation (example)",
+  "applicantType": "individual",
+  "type": "standalone",
+  "docSets": [
+    {
+      "type": "IDENTITY",
+      "docTypes": ["PASSPORT", "ID_CARD", "DRIVERS", "RESIDENCE_PERMIT"],
+      "videoRequired": "disabled"
+    },
+    {
+      "type": "SELFIE",
+      "videoRequired": "passiveLiveness"
+    }
+  ],
+  "checkSourceSettings": {
+    "countrySettings": [
+      {
+        "country": "TUR",
+        "checkType": "PERSON",
+        "groupType": "INPUT_COUNTRY",
+        "executionConfigurations": [
+          {"sourceId": "tur_gov_id"}
+        ]
+      }
+    ]
+  }
+}

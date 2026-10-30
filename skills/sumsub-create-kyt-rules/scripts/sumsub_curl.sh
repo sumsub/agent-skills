@@ -57,7 +57,7 @@ CURL_ARGS=(
   -H "X-App-Access-Ts: ${TS}"
   -H "X-App-Access-Sig: ${SIG}"
   -H "X-Agent-Source: sumsub-skills"
-  -H "X-Agent-Source-Ver: 1.5.0"
+  -H "X-Agent-Source-Ver: 1.6.0"
   -H "Accept: application/json"
 )
 
@@ -68,7 +68,7 @@ fi
 
 RESP_FILE="$(mktemp)"
 trap 'rm -f "${BODY_FILE}" "${RESP_FILE}"' EXIT
-HTTP_STATUS="$(curl "${CURL_ARGS[@]}" -w "%{http_code}" -o "${RESP_FILE}" "${BASE}${PATH_Q}")"
+HTTP_STATUS="$(curl --compressed "${CURL_ARGS[@]}" -w "%{http_code}" -o "${RESP_FILE}" "${BASE}${PATH_Q}")"
 cat "${RESP_FILE}"
 if [[ "${HTTP_STATUS}" -ge 400 ]]; then
   echo "HTTP ${HTTP_STATUS}" >&2

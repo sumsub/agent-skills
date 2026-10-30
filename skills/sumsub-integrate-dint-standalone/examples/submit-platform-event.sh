@@ -64,13 +64,13 @@ SIG=$(printf '%s%s%s%s' "$TS" "POST" "$PATH_Q" "$BODY" \
       | openssl dgst -sha256 -hmac "$SUMSUB_SECRET_KEY" -hex \
       | awk '{print $NF}')
 
-curl -sS --fail-with-body -X POST \
+curl --compressed -sS --fail-with-body -X POST \
   -H "Content-Type: application/json" \
   -H "X-App-Token: $SUMSUB_APP_TOKEN" \
   -H "X-App-Access-Ts: $TS" \
   -H "X-App-Access-Sig: $SIG" \
   -H "X-Agent-Source: sumsub-skills" \
-  -H "X-Agent-Source-Ver: 1.5.0" \
+  -H "X-Agent-Source-Ver: 1.6.0" \
   --data "$BODY" \
   "https://api.sumsub.com${PATH_Q}"
 

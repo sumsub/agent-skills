@@ -23,6 +23,7 @@ pick the right `type` and fill its `match`** — not everything is a questionnai
 |---|---|---|---|
 | `question` / `scoring` | `{questionnaire, section, item}` (+ `expectScores` for scoring), or `null` if absent | question exists; option scores equal `expectScores` | `questionnaires[].sections[].items[].options[].score` |
 | `question` / `scoring` (document collection) | `{docSet: "IDENTITY", types: ["PASSPORT", …]}` | the level collects that docSet + (optionally) those doc types | `level.requiredIdDocs.docSets[].{idDocSetType,types}` |
+| `question` (KYB beneficial owners / UBOs) | `{docSet: "COMPANY_BENEFICIARIES"}` — no `types` (not the legacy `COMPANY`) | the company level collects associated parties | `level.requiredIdDocs.docSets[].idDocSetType` |
 | `data-field` | `{field: "dob"}` or `{fields: ["dob","country"]}` | **APPLICANT_DATA collects the named field(s)** | `docSets[APPLICANT_DATA].fields[].name` |
 | `country-eligibility` | `{mustHaveAllowlist: true}` **or** `{mustExclude: ["USA","IRN"]}` | a geo restriction exists / prohibited countries are not admitted | `requiredIdDocs.includedCountries` / `excludedCountries` / `rejectUsaResidents` |
 | `liveness` | `{}` | a SELFIE step enforces a liveness mode (not photo-only/disabled) | `docSets[SELFIE].videoRequired` |

@@ -84,12 +84,12 @@ check_behavior_token() {
   body="$(printf '{"sessionId":"_preflight_%s","ttlInSecs":600}' "$(date -u +%s)")"
   read -r ts sig <<<"$(sign_post "${path}" "${body}")"
   local resp code rbody
-  resp="$(curl -sS -w '\nHTTP %{http_code}\n' -X POST \
+  resp="$(curl --compressed -sS -w '\nHTTP %{http_code}\n' -X POST \
     -H "X-App-Token: ${SUMSUB_APP_TOKEN}" \
     -H "X-App-Access-Ts: ${ts}" \
     -H "X-App-Access-Sig: ${sig}" \
     -H "X-Agent-Source: sumsub-skills" \
-    -H "X-Agent-Source-Ver: 1.5.0" \
+    -H "X-Agent-Source-Ver: 1.6.0" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     --data "${body}" "${BASE}${path}")"
@@ -123,12 +123,12 @@ check_levels() {
   local path="/resources/applicants/-/levels"
   read -r ts sig <<<"$(sign_get "${path}")"
   local resp code rbody
-  resp="$(curl -sS -w '\nHTTP %{http_code}\n' \
+  resp="$(curl --compressed -sS -w '\nHTTP %{http_code}\n' \
     -H "X-App-Token: ${SUMSUB_APP_TOKEN}" \
     -H "X-App-Access-Ts: ${ts}" \
     -H "X-App-Access-Sig: ${sig}" \
     -H "X-Agent-Source: sumsub-skills" \
-    -H "X-Agent-Source-Ver: 1.5.0" \
+    -H "X-Agent-Source-Ver: 1.6.0" \
     -H "Accept: application/json" \
     "${BASE}${path}")"
   code="$(printf '%s' "${resp}" | http_code_from)"

@@ -76,7 +76,7 @@ def main() -> int:
     print(f"X-App-Access-Ts: {ts}")
     print(f"X-App-Access-Sig: {sig}")
     print("X-Agent-Source: sumsub-skills")
-    print("X-Agent-Source-Ver: 1.5.0")
+    print("X-Agent-Source-Ver: 1.6.0")
     return 0
 
 

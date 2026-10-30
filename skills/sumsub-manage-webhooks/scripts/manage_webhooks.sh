@@ -68,13 +68,13 @@ sumsub_request() {
     -H "X-App-Access-Ts: ${ts}"
     -H "X-App-Access-Sig: ${sig}"
     -H "X-Agent-Source: sumsub-skills"
-    -H "X-Agent-Source-Ver: 1.5.0"
+    -H "X-Agent-Source-Ver: 1.6.0"
     -H "Accept: application/json"
   )
   if [[ -n "${body_file}" ]]; then
     args+=(-H "Content-Type: application/json" --data-binary "@${body_file}")
   fi
-  curl "${args[@]}" "${BASE%/}${path_q}"
+  curl --compressed "${args[@]}" "${BASE%/}${path_q}"
 }
 
 fmt_list() {

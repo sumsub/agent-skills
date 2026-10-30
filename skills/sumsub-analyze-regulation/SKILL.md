@@ -66,10 +66,9 @@ Defines the sequence of verification steps an applicant must complete. Each step
 | `QUESTIONNAIRE` / `QUESTIONNAIRE2–4` | Custom form. References a questionnaire definition by `questionnaireDefId`. |
 | `E_KYC` | Non-document electronic verification against external databases. See [E-KYC section](#e-kyc-non-document-electronic-verification). |
 | `DEVICE_CHECK` | Device intelligence and fingerprinting. Requires `DEVICE_INTELLIGENCE` license. |
-| `COMPANY` | KYB: company info collection. |
-| `COMPANY_DATA` | KYB: company data fields. |
-| `COMPANY_DOCUMENTS` | KYB: corporate documents upload. |
-| `COMPANY_BENEFICIARIES` | KYB: UBOs and representatives verification. |
+| `COMPANY_DATA` | KYB: company information (name, country, registration number, addresses, tax id, …). Every KYB level starts with it. |
+| `COMPANY_DOCUMENTS` | KYB: corporate documents, in groups (legal presence, company details, ownership structure, control structure, representatives' authorization). |
+| `COMPANY_BENEFICIARIES` | KYB: associated parties — UBOs, shareholders, directors, representatives — each verified with its own KYC level or collected as data only. |
 | `ACCREDITED_INVESTOR` | Accredited investor qualification. |
 | `E_SIGN` | Electronic signature capture. |
 | `TR_RECIPIENT_INFORMATION` | Travel Rule recipient data collection. |
@@ -262,7 +261,8 @@ Covers: finance transactions, Travel Rule (crypto counterparty data), platform e
 | Enhanced Due Diligence (EDD) | Separate EDD level + extended questionnaire | `sumsub-create-level` + `sumsub-create-questionnaire` |
 | PoA document age limit | PoA preset `maxMonths` per category | `sumsub-create-poa-preset` |
 | Electronic / non-document verification | `E_KYC` docSet, standalone or nested inside `IDENTITY` | `sumsub-create-level` + `sumsub-check-databases` *(CSM activation; per-country availability)* |
-| KYB — company verification | `COMPANY` / `COMPANY_DATA` / `COMPANY_BENEFICIARIES` | `sumsub-create-level` |
+| KYB — company verification | Company level: `COMPANY_DATA` + `COMPANY_DOCUMENTS` + `COMPANY_BENEFICIARIES`, KYB check mode `kybType` | `sumsub-create-level` (UBO / director KYC level first) |
+| Beneficial-ownership threshold (e.g. owners of 25% or more) | `kybSettings.uboThreshold` / `shareholderThreshold` on the company level | `sumsub-create-level` |
 | Risk-based routing (standard vs EDD) | Workflow with `exclusiveChoice` | `sumsub-create-workflow` |
 | Auto-review of AML screening hits (false-positive clearing, PEP rules) | AML Resolution Rule Chain | `sumsub-create-aml-resolution-rules` |
 | Screening-driven routing (e.g. flagged PEP → manual review) | AML rule tag + workflow condition on `checks.personWatchlist.tags` | `sumsub-create-aml-resolution-rules` + `sumsub-create-workflow` |

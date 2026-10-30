@@ -95,12 +95,12 @@ def request(method, path, body: "bytes | str" = b""):
         "X-App-Access-Ts": ts,
         "X-App-Access-Sig": sig,
         "X-Agent-Source": "sumsub-skills",
-        "X-Agent-Source-Ver": "1.5.0",
+        "X-Agent-Source-Ver": "1.6.0",
         "Accept": "application/json",
     }
     # `-w '\nHTTP %{http_code}\n'` appends the status as a trailing line so we can
     # read it back off stdout (curl's exit code alone doesn't carry 4xx/5xx).
-    cmd = ["curl", "-sS", "-X", method, base + path, "-w", "\nHTTP %{http_code}\n"]
+    cmd = ["curl", "--compressed", "-sS", "-X", method, base + path, "-w", "\nHTTP %{http_code}\n"]
     for k, v in headers.items():
         cmd += ["-H", "{}: {}".format(k, v)]
     if method != "GET":

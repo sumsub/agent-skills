@@ -61,7 +61,7 @@ CURL_ARGS=(
   -H "X-App-Access-Ts: ${TS}"
   -H "X-App-Access-Sig: ${SIG}"
   -H "X-Agent-Source: sumsub-skills"
-  -H "X-Agent-Source-Ver: 1.5.0"
+  -H "X-Agent-Source-Ver: 1.6.0"
   -H "Accept: ${ACCEPT}"
 )
 
@@ -72,7 +72,7 @@ fi
 
 RESP_FILE="$(mktemp)"
 trap 'rm -f "${BODY_FILE}" "${RESP_FILE}"' EXIT
-HTTP_STATUS="$(curl "${CURL_ARGS[@]}" -w "%{http_code}" -o "${RESP_FILE}" "${BASE}${PATH_Q}")"
+HTTP_STATUS="$(curl --compressed "${CURL_ARGS[@]}" -w "%{http_code}" -o "${RESP_FILE}" "${BASE}${PATH_Q}")"
 cat "${RESP_FILE}"
 # the API answers without a trailing newline — end the body's line before anything else prints
 if [[ -s "${RESP_FILE}" && -n "$(tail -c 1 "${RESP_FILE}")" ]]; then

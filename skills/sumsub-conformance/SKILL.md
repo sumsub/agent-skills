@@ -108,6 +108,7 @@ writeup lives in [`sumsub-api-auth`](../sumsub-api-auth/SKILL.md).
    per-type `match` shapes are in [`references/requirements-schema.md`](references/requirements-schema.md):
    - questionnaire question/score → `match: {questionnaire, section, item}` (+ `expectScores`);
    - document collected → `match: {docSet: "IDENTITY", types: [...]}`;
+   - beneficial owners / UBOs (KYB) → `match: {docSet: "COMPANY_BENEFICIARIES"}` — no `types`; the legacy `COMPANY` step never appears on WebSDK 2.0 levels;
    - **applicant-data field present** → `type: data-field`, `match: {field: "dob"}` / `{fields: [...]}`;
    - country allowlist / prohibited jurisdictions → `type: country-eligibility`, `match: {mustHaveAllowlist: true}` / `{mustExclude: [...]}`;
    - selfie liveness → `type: liveness`, `match: {}`;

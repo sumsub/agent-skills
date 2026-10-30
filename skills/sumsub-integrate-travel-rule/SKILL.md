@@ -133,10 +133,11 @@ Build and post the transaction with
 | `counterparty.institutionInfo.internalId` | VASP id from Stage 1, when known | same |
 
 📘 In flow ② check first that an exchange does not already exist for this
-transfer — a duplicate puts two requests in the counterparty's queue. Query
-`GET /resources/kyt/txns/query/-` walking the deduplication ladder — hash,
-then address + asset, then amount + time window — and create the exchange only
-when nothing comes back. Endpoint syntax, the ladder and helper scripts:
+transfer — a duplicate puts two requests in the counterparty's queue. Call
+`POST /resources/api/tr/txns/search` with the hash, both wallet addresses,
+amount, asset, chain, settlement time and direction — the server matches the
+hash, then falls back to addresses + asset + amount/time — and create the
+exchange only when nothing comes back. Body fields and helper script:
 [`references/find-transactions.md`](references/find-transactions.md).
 
 🚧 Sending a hash in flow ① turns it into an after-settlement exchange — the
@@ -318,6 +319,6 @@ Procedure, trigger values and what is *not* reproducible in Sandbox:
 - [`examples/withdrawal-before-settlement.json`](examples/withdrawal-before-settlement.json), [`examples/deposit-after-settlement.json`](examples/deposit-after-settlement.json) — transaction specs for `sumsub-create-transaction`.
 - [`examples/answer-incoming-request.js`](examples/answer-incoming-request.js) — webhook handler implementing Stage 5 with the flags and ordering.
 - [`references/unhosted-wallets.md`](references/unhosted-wallets.md) — the unhosted-wallet path: `POST /resources/tr/sdk/init`, reading the ownership check, manual verification; sequence details in [`references/unhosted-wallet-flow.md`](references/unhosted-wallet-flow.md).
-- [`references/find-transactions.md`](references/find-transactions.md) — searching transactions and the dedupe ladder; operator and encoding details in [`references/query-syntax.md`](references/query-syntax.md).
+- [`references/find-transactions.md`](references/find-transactions.md) — the search endpoint and the dedupe check.
 - [`sumsub-resolve-currency`](../sumsub-resolve-currency/SKILL.md) — which `currencyCode` / `cryptoChain` to send, and why `amountInDefaultCurrency` matters here.
 - Sumsub docs: [Travel Rule data exchange flows](https://docs.sumsub.com/docs/travel-rule-data-exchange-flows), [Travel Rule settings](https://docs.sumsub.com/docs/travel-rule-settings), [Wallet Address Book](https://docs.sumsub.com/docs/wallet-address-book), [Unhosted wallet verification](https://docs.sumsub.com/docs/unhosted-wallet-verification).

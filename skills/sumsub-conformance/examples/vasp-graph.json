@@ -1,5 +1,5 @@
 {
-  "_comment": "HYPOTHETICAL VASP/crypto-exchange deployed config (same shape resolve_graph.sh emits). Deliberately partially-conformant: individual-only (no COMPANY/BO docset), AML+PEP routed, but no country EDD / no KYT-per-transfer / no termination branch.",
+  "_comment": "HYPOTHETICAL VASP/crypto-exchange deployed config (same shape resolve_graph.sh emits). Deliberately partially-conformant: individual-only (no KYB / COMPANY_BENEFICIARIES docSet), AML+PEP routed, but no country EDD / no KYT-per-transfer / no termination branch.",
   "level": {
     "name": "vasp-onboarding-eu",
     "websdkNext": true,

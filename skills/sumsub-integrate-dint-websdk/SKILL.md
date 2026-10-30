@@ -163,9 +163,9 @@ PATH_Q="/resources/applicants/-;externalUserId=${USER_ID}/one"
 TS=$(date -u +%s)
 SIG=$(printf '%s%s%s' "$TS" "GET" "$PATH_Q" \
       | openssl dgst -sha256 -hmac "$SUMSUB_SECRET_KEY" -hex | awk '{print $NF}')
-curl -sS --fail-with-body -H "X-App-Token: $SUMSUB_APP_TOKEN" -H "X-App-Access-Ts: $TS" \
+curl --compressed -sS --fail-with-body -H "X-App-Token: $SUMSUB_APP_TOKEN" -H "X-App-Access-Ts: $TS" \
      -H "X-App-Access-Sig: $SIG" -H "X-Agent-Source: sumsub-skills" \
-     -H "X-Agent-Source-Ver: 1.5.0" \
+     -H "X-Agent-Source-Ver: 1.6.0" \
      "https://api.sumsub.com${PATH_Q}"
 ```
 

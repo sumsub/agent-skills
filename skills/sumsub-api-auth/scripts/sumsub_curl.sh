@@ -32,6 +32,13 @@ if [[ "${PATH_Q}" != /* ]]; then
   exit 2
 fi
 
+# Applicant levels are written only by the sumsub-create-level skill: its
+# post_level.sh / patch_level.sh check the payload before sending it.
+if [[ "${METHOD}" != "GET" && "${PATH_Q%%\?*}" == /resources/applicants/-/levels* ]]; then
+  echo "error: ${METHOD} ${PATH_Q%%\?*} is not sent through this wrapper — create or change levels only with the sumsub-create-level skill (post_level.sh / patch_level.sh). If that skill refused the change, it can't be made via the API: use the Sumsub dashboard." >&2
+  exit 2
+fi
+
 # Materialise the body to a temp file so we can sign the *exact* bytes we send.
 BODY_FILE="$(mktemp)"
 trap 'rm -f "${BODY_FILE}"' EXIT
@@ -57,7 +64,7 @@ CURL_ARGS=(
   -H "X-App-Access-Ts: ${TS}"
   -H "X-App-Access-Sig: ${SIG}"
   -H "X-Agent-Source: sumsub-skills"
-  -H "X-Agent-Source-Ver: 1.5.0"
+  -H "X-Agent-Source-Ver: 1.6.0"
   -H "Accept: application/json"
 )
 
@@ -66,4 +73,4 @@ if [[ -s "${BODY_FILE}" ]]; then
   CURL_ARGS+=(-H "Content-Type: application/json" --data-binary "@${BODY_FILE}")
 fi
 
-curl "${CURL_ARGS[@]}" "${BASE}${PATH_Q}"
+curl --compressed "${CURL_ARGS[@]}" "${BASE}${PATH_Q}"

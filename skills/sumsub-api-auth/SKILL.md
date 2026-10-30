@@ -203,7 +203,7 @@ req = Request(
         "Content-Type": f"multipart/form-data; boundary={boundary}",
         "Content-Length": str(len(body)),
         "X-Agent-Source": "sumsub-skills",
-        "X-Agent-Source-Ver": "1.5.0",
+        "X-Agent-Source-Ver": "1.6.0",
     },
 )
 print(urlopen(req).read().decode())

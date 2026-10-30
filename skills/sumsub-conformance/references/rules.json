@@ -65,7 +65,8 @@
         "COMPANY",
         "KYB_FULL",
         "KYB_AUTO_AML_AND_REGISTRY",
-        "KYB_AUTO_AML_ONLY"
+        "KYB_AUTO_AML_ONLY",
+        "KYB_APPLICANTS"
       ],
       "TR_RECIPIENT_INFORMATION": [
         "TRAVEL_RULE"

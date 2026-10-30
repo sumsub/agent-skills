@@ -1,0 +1,11 @@
+{
+  "_comment": "Body for POST /resources/api/tr/txns/search. Run it before creating an after-settlement exchange; a hit means an exchange already exists and you should answer it, not start a second one. The server matches the hash first, then falls back to wallet addresses + asset/network, preferring amount and txnDate (±24h).",
+  "paymentTxnId": "000000000000000000013f2851d71e6ea8dfcc9151654ca4cbbbfd759122589f",
+  "applicantWalletAddress": "0xourdepositaddress",
+  "counterpartyWalletAddress": "0xaddressthefundscamefrom",
+  "amount": 1250,
+  "currencyCode": "USDT",
+  "cryptoChain": "ETH",
+  "txnDate": "2026-05-21 09:12:00+0000",
+  "direction": "in"
+}

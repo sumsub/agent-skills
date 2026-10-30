@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/anthropics/skills/main/schema/skills.json",
   "name": "@sumsub/agent-skills",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "skills": [
     {
       "name": "sumsub-api-auth",
@@ -25,7 +25,7 @@
       "name": "sumsub-create-level",
       "path": "./skills/sumsub-create-level",
       "entry": "SKILL.md",
-      "description": "Create or update a Sumsub ApplicantLevel. POST /resources/applicants/-/levels to create, PATCH same path to update (id in body), GET /resources/applicants/-/levels/{id} to read. Compact docSet spec → full payload."
+      "description": "Create or update a Sumsub ApplicantLevel. POST /resources/applicants/-/levels to create, PATCH same path to update (id in body), GET /resources/applicants/-/levels/{id} to read, GET /resources/api/agent/globalSettings?applicantLevelName= to read back which Fraud Prevention checks run. Compact docSet spec → full payload."
     },
     {
       "name": "sumsub-create-cross-check-preset",
@@ -151,7 +151,7 @@
       "name": "sumsub-integrate-travel-rule",
       "path": "./skills/sumsub-integrate-travel-rule",
       "entry": "SKILL.md",
-      "description": "End-to-end Sumsub Travel Rule integration recipe — pick the flow (before settlement / after settlement / answering), identify the counterparty VASP, submit the transfer, read the exchange status, finalise or cancel, and answer incoming requests with the two ordered responses. Also covers the unhosted-wallet path when no VASP is attributed (POST /resources/tr/sdk/init, ownership checks, manual verification) and finding existing transactions via GET /resources/kyt/txns/query/- including the deduplication ladder before after-settlement exchanges."
+      "description": "End-to-end Sumsub Travel Rule integration recipe — pick the flow (before settlement / after settlement / answering), identify the counterparty VASP, submit the transfer, read the exchange status, finalise or cancel, and answer incoming requests with the two ordered responses. Also covers the unhosted-wallet path when no VASP is attributed (POST /resources/tr/sdk/init, ownership checks, manual verification) and finding existing transactions via POST /resources/api/tr/txns/search before after-settlement exchanges (deduplication)."
     },
     {
       "name": "sumsub-manage-wallet-address-book",

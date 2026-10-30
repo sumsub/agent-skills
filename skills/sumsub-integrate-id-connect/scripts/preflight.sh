@@ -70,12 +70,12 @@ check_connect_token() {
   read -r ts sig <<<"$(sign_post "${path}" "${body}")"
   local tmp; tmp="$(mktemp)"
   local code
-  code="$(curl -sS -o "${tmp}" -w '%{http_code}' -X POST \
+  code="$(curl --compressed -sS -o "${tmp}" -w '%{http_code}' -X POST \
     -H "X-App-Token: ${SUMSUB_APP_TOKEN}" \
     -H "X-App-Access-Ts: ${ts}" \
     -H "X-App-Access-Sig: ${sig}" \
     -H "X-Agent-Source: sumsub-skills" \
-    -H "X-Agent-Source-Ver: 1.5.0" \
+    -H "X-Agent-Source-Ver: 1.6.0" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     --data "${body}" "${BASE}${path}")"
@@ -109,7 +109,7 @@ check_connect_token() {
 
 check_oidc_discovery() {
   local tmp; tmp="$(mktemp)"
-  local code; code="$(curl -sS -o "${tmp}" -w '%{http_code}' "${ID_BASE}/.well-known/openid-configuration")"
+  local code; code="$(curl --compressed -sS -o "${tmp}" -w '%{http_code}' "${ID_BASE}/.well-known/openid-configuration")"
   if [[ "${code}" != "200" ]]; then
     rm -f "${tmp}"
     emit FAIL oidc_discovery "${ID_BASE}/.well-known/openid-configuration returned HTTP ${code}"
@@ -130,12 +130,12 @@ check_levels() {
   read -r ts sig <<<"$(sign_get "${path}")"
   local tmp; tmp="$(mktemp)"
   local code
-  code="$(curl -sS -o "${tmp}" -w '%{http_code}' \
+  code="$(curl --compressed -sS -o "${tmp}" -w '%{http_code}' \
     -H "X-App-Token: ${SUMSUB_APP_TOKEN}" \
     -H "X-App-Access-Ts: ${ts}" \
     -H "X-App-Access-Sig: ${sig}" \
     -H "X-Agent-Source: sumsub-skills" \
-    -H "X-Agent-Source-Ver: 1.5.0" \
+    -H "X-Agent-Source-Ver: 1.6.0" \
     -H "Accept: application/json" \
     "${BASE}${path}")"
   if [[ "${code}" != "200" ]]; then

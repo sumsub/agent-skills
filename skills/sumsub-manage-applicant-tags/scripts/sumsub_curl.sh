@@ -57,7 +57,7 @@ CURL_ARGS=(
   -H "X-App-Access-Ts: ${TS}"
   -H "X-App-Access-Sig: ${SIG}"
   -H "X-Agent-Source: sumsub-skills"
-  -H "X-Agent-Source-Ver: 1.5.0"
+  -H "X-Agent-Source-Ver: 1.6.0"
   -H "Accept: application/json"
 )
 
@@ -66,4 +66,4 @@ if [[ -s "${BODY_FILE}" ]]; then
   CURL_ARGS+=(-H "Content-Type: application/json" --data-binary "@${BODY_FILE}")
 fi
 
-curl "${CURL_ARGS[@]}" "${BASE}${PATH_Q}"
+curl --compressed "${CURL_ARGS[@]}" "${BASE}${PATH_Q}"

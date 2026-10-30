@@ -2,29 +2,29 @@
   "name": "KYB Company (example)",
   "applicantType": "company",
   "type": "standalone",
+  "kybType": "autoAndManual",
+  "kybSettings": {
+    "shareholderThreshold": 25,
+    "uboThreshold": 25
+  },
   "docSets": [
     {
-      "type": "COMPANY",
-      "steps": [
-        {
-          "name": "company",
-          "minDocsCnt": 1,
-          "idDocSubTypes": ["SHAREHOLDER_REGISTRY", "DIRECTORS_REGISTRY"],
-          "fields": ["companyName", "registrationNumber"]
-        },
-        {
-          "name": "ubos",
-          "minDocsCnt": 0,
-          "applicantLevelName": "Basic KYC (example)",
-          "fields": ["firstName", "lastName", "dob", "placeOfBirth", "email"]
-        },
-        {
-          "name": "representatives",
-          "minDocsCnt": 1,
-          "applicantLevelName": "Basic KYC (example)",
-          "idDocTypes": ["POWER_OF_ATTORNEY"],
-          "fields": ["firstName", "lastName", "email"]
-        }
+      "type": "COMPANY_DATA",
+      "fields": ["country", "companyName", "registrationNumber", "incorporatedOn", "legalAddress"]
+    },
+    {
+      "type": "COMPANY_DOCUMENTS",
+      "companyDocsGroupDefinitions": [
+        {"label": "legalPresence"},
+        {"label": "ownershipStructure", "subTypes": ["SHAREHOLDER_REGISTRY", "OWNERSHIP_STRUCTURE_CHART"]}
+      ]
+    },
+    {
+      "type": "COMPANY_BENEFICIARIES",
+      "companyBeneficiaryDefinitions": [
+        {"category": "ubos", "individual": {"levelName": "Basic KYC (example)"}},
+        {"category": "directors", "individual": {"levelName": "Basic KYC (example)"}},
+        {"category": "shareholders", "individual": {}, "company": {}}
       ]
     }
   ]

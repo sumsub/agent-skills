@@ -10,6 +10,8 @@
 #   ./post_level.sh /path/to/level.json
 #
 # Refuses non-sandbox tokens unless SUMSUB_ALLOW_PROD=1.
+# A company (KYB) level payload must pass `build_level.py --check --levels`
+# (built by the builder, party levels exist) or it is not sent: exit 4.
 # Override SUMSUB_BASE only for testing; default is https://api.sumsub.com.
 #
 # Prints the response body followed by a final line: HTTP <code>
@@ -25,11 +27,13 @@ if [[ "${SUMSUB_APP_TOKEN}" != sbx:* && "${SUMSUB_ALLOW_PROD:-0}" != "1" ]]; the
   exit 3
 fi
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+WORK="$(mktemp -d)"
+trap 'rm -rf "${WORK}"' EXIT
 # Payload comes from $1 (file path), stdin if no arg, or "-" for explicit stdin.
 PAYLOAD="${1:--}"
 if [[ "${PAYLOAD}" == "-" ]]; then
-  PAYLOAD="$(mktemp)"
-  trap 'rm -f "${PAYLOAD}"' EXIT
+  PAYLOAD="${WORK}/payload.json"
   cat > "${PAYLOAD}"
 elif [[ ! -f "${PAYLOAD}" ]]; then
   echo "payload file not found: ${PAYLOAD}" >&2
@@ -38,6 +42,16 @@ fi
 if [[ ! -s "${PAYLOAD}" ]]; then
   echo "error: payload is empty (no file content, or stdin closed without data)" >&2
   exit 2
+fi
+
+# A company (KYB) level goes out only as build_level.py builds it, with every
+# associated party's verification level in place.
+if python3 -c 'import json,sys; sys.exit(0 if json.load(open(sys.argv[1])).get("applicantType") == "company" else 1)' "${PAYLOAD}" 2>/dev/null; then
+  "${SCRIPT_DIR}/list_levels.sh" > "${WORK}/levels.out"
+  if ! python3 "${SCRIPT_DIR}/build_level.py" --check --levels "${WORK}/levels.out" < "${PAYLOAD}"; then
+    echo "refused: the company level was not sent (see the error above)" >&2
+    exit 4
+  fi
 fi
 
 METHOD="POST"
@@ -50,12 +64,12 @@ SIG="$(
     | awk '{print $NF}'
 )"
 
-curl -sS -X "${METHOD}" \
+curl --compressed -sS -X "${METHOD}" \
   -H "X-App-Token: ${SUMSUB_APP_TOKEN}" \
   -H "X-App-Access-Ts: ${TS}" \
   -H "X-App-Access-Sig: ${SIG}" \
   -H "X-Agent-Source: sumsub-skills" \
-  -H "X-Agent-Source-Ver: 1.5.0" \
+  -H "X-Agent-Source-Ver: 1.6.0" \
   -H "Accept: application/json" \
   -H "Content-Type: application/json" \
   --data-binary "@${PAYLOAD}" \

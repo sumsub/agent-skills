@@ -41,7 +41,6 @@
 | `caseAction` | Object | — | Case creation config (see Case Action below). Omit if not needed. |
 | `applicantChange` | Object | — | Applicant workflow change on match. Required for scheduled rules. |
 | `applicantActions` | Object | — | Additional applicant actions. Required for scheduled rules if no `applicantChange`. |
-| `txnActions` | `List<Object>` | — | Transaction property actions (e.g. `setProp`). |
 
 ### Scheduling (scheduled rules only)
 
@@ -470,26 +469,6 @@ Used when `types: ["scheduledEvent"]`. Defines which applicants the rule fires f
 | `blueprintId` | String | — | Case blueprint id (optional; uses default template if omitted) |
 | `priority` | String | — | `low`, `medium`, or `high` |
 | `deadlineHours` | Integer | — | Investigation deadline in hours |
-
----
-
-## Transaction Action (`txnActions`)
-
-Set a custom property on the transaction when the rule matches:
-
-```json
-{
-  "txnActions": [
-    {
-      "type": "setProp",
-      "setPropertyActionParams": {
-        "propName": "riskCategory",
-        "elExpression": "'high'"
-      }
-    }
-  ]
-}
-```
 
 ---
 

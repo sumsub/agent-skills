@@ -7,7 +7,7 @@
     { "id": "kyc-customer-identification-ovd", "text": "5.7 Identify via an Officially Valid Document (passport / driving licence / …)",
       "type": "question", "enforceable": "config", "match": { "docSet": "IDENTITY", "types": ["PASSPORT", "DRIVERS"] } },
     { "id": "beneficial-owner", "text": "5.7b / 5.8.2 Identify and verify the beneficial owner",
-      "type": "question", "enforceable": "config", "match": { "docSet": "COMPANY" } },
+      "type": "question", "enforceable": "config", "match": { "docSet": "COMPANY_BENEFICIARIES" } },
     { "id": "sanctions-screening-onboarding", "text": "5.10 Sanctions screening at onboarding",
       "type": "screening", "enforceable": "config", "enforcementSignal": ["riskLabels.aml", "sanctions"] },
     { "id": "pep-screening", "text": "5.9 PEPs identified and subject to EDD",

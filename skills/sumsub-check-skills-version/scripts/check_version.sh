@@ -32,11 +32,11 @@ LOCAL="$(
 [ -n "${LOCAL}" ] || LOCAL="unknown"
 
 REMOTE_RAW="$(
-  curl -fsS \
+  curl --compressed -fsS \
     --max-time 5 \
     -H "Accept: application/json, text/plain;q=0.9, */*;q=0.1" \
     -H "X-Agent-Source: sumsub-skills" \
-    -H "X-Agent-Source-Ver: 1.5.0" \
+    -H "X-Agent-Source-Ver: 1.6.0" \
     "${VERSION_URL}" 2>/dev/null || true
 )"
 

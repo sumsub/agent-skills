@@ -124,7 +124,7 @@ SIG=$(printf '%s%s%s' "$TS" "POST" "$PATH_Q" \
       | openssl dgst -sha256 -hmac "$SUMSUB_SECRET_KEY" -hex \
       | awk '{print $NF}')
 
-curl -sS -X POST \
+curl --compressed -sS -X POST \
   -H "X-App-Token: $SUMSUB_APP_TOKEN" \
   -H "X-App-Access-Ts: $TS" \
   -H "X-App-Access-Sig: $SIG" \
@@ -404,7 +404,7 @@ SIG=$(printf '%s%s%s' "$TS" "GET" "$PATH_Q" \
       | openssl dgst -sha256 -hmac "$SUMSUB_SECRET_KEY" -hex \
       | awk '{print $NF}')
 
-curl -sS \
+curl --compressed -sS \
   -H "X-App-Token: $SUMSUB_APP_TOKEN" \
   -H "X-App-Access-Ts: $TS" \
   -H "X-App-Access-Sig: $SIG" \

@@ -58,7 +58,7 @@ async function sumsubHmac(method, pathQ, body, extraHeaders = {}) {
     'X-App-Access-Ts':    String(ts),
     'X-App-Access-Sig':   sig,
     'X-Agent-Source':     'sumsub-skills',
-    'X-Agent-Source-Ver': '1.5.0',
+    'X-Agent-Source-Ver': '1.6.0',
     Accept:               'application/json',
     ...extraHeaders,
   };

@@ -13,6 +13,8 @@
 #   ./patch_level.sh /path/to/level-with-id.json
 #
 # Refuses non-sandbox tokens unless SUMSUB_ALLOW_PROD=1.
+# Reads the level first; a company (KYB) level payload must pass
+# `build_level.py --check --base <current> --levels` or it is not sent: exit 4.
 #
 # Prints the response body followed by a final line: HTTP <code>
 set -euo pipefail
@@ -27,11 +29,13 @@ if [[ "${SUMSUB_APP_TOKEN}" != sbx:* && "${SUMSUB_ALLOW_PROD:-0}" != "1" ]]; the
   exit 3
 fi
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+WORK="$(mktemp -d)"
+trap 'rm -rf "${WORK}"' EXIT
 # Payload comes from $1 (file path), stdin if no arg, or "-" for explicit stdin.
 PAYLOAD="${1:--}"
 if [[ "${PAYLOAD}" == "-" ]]; then
-  PAYLOAD="$(mktemp)"
-  trap 'rm -f "${PAYLOAD}"' EXIT
+  PAYLOAD="${WORK}/payload.json"
   cat > "${PAYLOAD}"
 elif [[ ! -f "${PAYLOAD}" ]]; then
   echo "payload file not found: ${PAYLOAD}" >&2
@@ -47,6 +51,24 @@ if ! python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); sys.exit(0 if 
   exit 2
 fi
 
+# A company (KYB) level is changed only as build_level.py --base builds it, with
+# every associated party's verification level in place. Read the level first:
+# that is what tells a company level (and a WebSDK 1.0 one) from the rest.
+ID="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["id"])' "${PAYLOAD}")"
+"${SCRIPT_DIR}/get_level.sh" "${ID}" > "${WORK}/current.out"
+if [[ "$(tail -n 1 "${WORK}/current.out")" != "HTTP 200" ]]; then
+  echo "error: can't read level ${ID} before the PATCH:" >&2
+  cat "${WORK}/current.out" >&2
+  exit 4
+fi
+if sed '$d' "${WORK}/current.out" | python3 -c 'import json,sys; sys.exit(0 if json.load(sys.stdin).get("applicantType") == "company" else 1)'; then
+  "${SCRIPT_DIR}/list_levels.sh" > "${WORK}/levels.out"
+  if ! python3 "${SCRIPT_DIR}/build_level.py" --check --base "${WORK}/current.out" --levels "${WORK}/levels.out" < "${PAYLOAD}"; then
+    echo "refused: the company level was not changed (see the error above)" >&2
+    exit 4
+  fi
+fi
+
 METHOD="PATCH"
 PATH_Q="/resources/applicants/-/levels"
 TS="$(date -u +%s)"
@@ -57,10 +79,12 @@ SIG="$(
     | awk '{print $NF}'
 )"
 
-curl -sS -X "${METHOD}" \
+curl --compressed -sS -X "${METHOD}" \
   -H "X-App-Token: ${SUMSUB_APP_TOKEN}" \
   -H "X-App-Access-Ts: ${TS}" \
   -H "X-App-Access-Sig: ${SIG}" \
+  -H "X-Agent-Source: sumsub-skills" \
+  -H "X-Agent-Source-Ver: 1.6.0" \
   -H "Accept: application/json" \
   -H "Content-Type: application/json" \
   --data-binary "@${PAYLOAD}" \

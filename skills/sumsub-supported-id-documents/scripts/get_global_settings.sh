@@ -37,11 +37,11 @@ BODY_FILE="$(mktemp)"
 trap 'rm -f "${BODY_FILE}"' EXIT
 
 HTTP_CODE="$(
-  curl -sS -X "${METHOD}" \
+  curl --compressed -sS -X "${METHOD}" \
     -H "X-App-Token: ${SUMSUB_APP_TOKEN}" \
     -H "X-App-Access-Ts: ${TS}" \
     -H "X-App-Access-Sig: ${SIG}" \
-    -H "X-Agent-Source-Ver: 1.5.0" \
+    -H "X-Agent-Source-Ver: 1.6.0" \
     -H "Accept: application/json" \
     -o "${BODY_FILE}" \
     -w '%{http_code}' \

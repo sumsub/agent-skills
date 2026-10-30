@@ -1,0 +1,15 @@
+{
+  "name": "Standard KYC, custom fraud prevention (example)",
+  "applicantType": "individual",
+  "type": "standalone",
+  "desc": "Per-level Fraud Prevention override: the advanced IP check is off for this level and the advanced email check is pinned on, while phone, identity enrichment and device intelligence are omitted and take the client-wide defaults. On a tenant moved to client-wide fraud prevention those defaults start as false, so omitted means off there: read them first with scripts/get_level_fraud_prevention.sh (no argument). useCustomFraudPreventionSettings must be true or the whole object is ignored. When updating a level that already has an override, start from its current fraudPreventionSettings: PATCH replaces the whole object. Read the result back with scripts/get_level_fraud_prevention.sh <level name>.",
+  "useCustomFraudPreventionSettings": true,
+  "fraudPreventionSettings": {
+    "advancedIpCheckEnabled": false,
+    "advancedEmailCheckEnabled": true
+  },
+  "docSets": [
+    {"type": "IDENTITY", "docTypes": ["PASSPORT", "ID_CARD", "DRIVERS"]},
+    {"type": "SELFIE", "videoRequired": "passiveLiveness"}
+  ]
+}

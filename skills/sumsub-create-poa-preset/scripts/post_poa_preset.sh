@@ -50,12 +50,12 @@ SIG="$(
     | awk '{print $NF}'
 )"
 
-curl -sS -X "${METHOD}" \
+curl --compressed -sS -X "${METHOD}" \
   -H "X-App-Token: ${SUMSUB_APP_TOKEN}" \
   -H "X-App-Access-Ts: ${TS}" \
   -H "X-App-Access-Sig: ${SIG}" \
   -H "X-Agent-Source: sumsub-skills" \
-  -H "X-Agent-Source-Ver: 1.5.0" \
+  -H "X-Agent-Source-Ver: 1.6.0" \
   -H "Accept: application/json" \
   -H "Content-Type: application/json" \
   --data-binary "@${PAYLOAD}" \

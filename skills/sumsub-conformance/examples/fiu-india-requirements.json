@@ -7,7 +7,7 @@
     { "id": "kyc-customer-identification-ovd", "text": "5.7 Identify customer via PAN/National ID + an Officially Valid Document (passport, driving licence, Aadhaar, Voter ID, NPR letter)",
       "type": "question", "enforceable": "config", "note": "level IDENTITY docSet accepts these doc types" },
     { "id": "beneficial-owner", "text": "5.7b / 5.8.2 Identify and verify the beneficial owner (ultimate ownership/control)",
-      "type": "question", "enforceable": "config", "note": "KYB / COMPANY beneficiaries docSet for legal-person customers" },
+      "type": "question", "enforceable": "config", "note": "KYB / COMPANY_BENEFICIARIES docSet for legal-person customers" },
     { "id": "cdd-written-process", "text": "5.8.4 Adopt written CDD procedures per Rule 9 PMLR",
       "type": "routing-outcome", "enforceable": "platform", "note": "internal policy document, not config" },
     { "id": "sanctions-screening-onboarding", "text": "5.10 Sanctions screening at onboarding (UNSC/UAPA/WMDA designations)",
